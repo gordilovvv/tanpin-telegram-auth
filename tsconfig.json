@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "skipLibCheck": false,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "alwaysStrict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "noEmit": false,
+    "allowJs": true,
+    "noImplicitThis": false,
+    "noErrorTruncation": true,
+    "noUnusedLocals": false,
+    "types": [
+      "node"
+    ],
+    "noUnusedParameters": false,
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "baseUrl": "./",
+    "outDir": "./dist"
+  },
+  "include": [
+    "src",
+    "test",
+    "*.js",
+    "*.cjs",
+    "*.mjs",
+    "*.ts",
+  ],
+  "exclude": [
+    ".esbuild",
+    "node_modules",
+    "coverage",
+    "dist",
+    "_"
+  ]
+}
