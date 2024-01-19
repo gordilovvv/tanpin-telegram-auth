@@ -1,0 +1,18 @@
+version: '3.4'
+
+services:
+  tanpin_telegram_auth_db:
+    image: postgres
+    container_name: tanpin_telegram_auth_db
+    restart: always
+    environment:
+      POSTGRES_DB: ${PGDATABASE}
+      POSTGRES_USER: ${PGUSER}
+      POSTGRES_PASSWORD: ${PGPASSWORD}
+    volumes:
+      - data:/var/lib/postgresql/data
+    ports:
+      - '${PGPORT}:5432'
+
+volumes:
+  data:

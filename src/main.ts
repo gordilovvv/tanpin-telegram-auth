@@ -1,10 +1,12 @@
 import { Router, createCors, error, json } from 'itty-router';
 import { createServer } from 'http';
 import { createServerAdapter } from '@whatwg-node/server';
-import { APP_PORT } from './config';
-import { authHandler } from './handlers/auth';
-import { startBot } from './lib/bot';
-import { logger } from './utils/logger';
+import { authHandler } from 'handlers/auth';
+import { getSessionHandler } from 'handlers/getSession';
+import { setSessionHandler } from 'handlers/setSession';
+import { startBot } from 'lib/bot';
+import { logger } from 'utils/logger';
+import { env } from '@environment';
 
 const { preflight, corsify } = createCors({
     origins: ['*'],
@@ -20,6 +22,9 @@ router
     }));
 
 router.get('/auth', (request) => authHandler(request));
+router.get('/session/get', (request) => getSessionHandler(request));
+router.post('/session/set', (request) => setSessionHandler(request));
+
 router.all('*', () => error(404));
 
 const ittyServer = createServerAdapter(
@@ -33,6 +38,6 @@ const httpServer = createServer(ittyServer);
 
 startBot();
 
-logger.info(`Start app on port ${APP_PORT}`);
-httpServer.listen(APP_PORT);
+logger.info(`Start app on port ${env.APP_PORT}`);
+httpServer.listen(env.APP_PORT);
 

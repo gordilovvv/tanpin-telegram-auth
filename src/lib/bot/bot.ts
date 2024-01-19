@@ -1,8 +1,8 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { BOT_TOKEN, START_PROMO_IMAGE, TELEGRAM_LOGIN_URL } from '../config';
+import { env } from '@environment';
 import fs from 'fs';
 
-export const bot = new TelegramBot(BOT_TOKEN, {
+const bot = new TelegramBot(env.BOT_TOKEN, {
     polling: true
 });
 
@@ -24,7 +24,7 @@ export const startBot = () => {
     bot.onText(/\/start/, (msg) => {
         const chatId = msg.chat.id;
 
-        bot.sendPhoto(chatId, fs.readFileSync(START_PROMO_IMAGE), {
+        bot.sendPhoto(chatId, fs.readFileSync(env.START_PROMO_IMAGE), {
             caption: startMessage(msg.from?.username),
             reply_markup: {
                 inline_keyboard: [
@@ -32,7 +32,7 @@ export const startBot = () => {
                         {
                             text: '🚀 Войти с Telegram',
                             login_url: {
-                                url: TELEGRAM_LOGIN_URL
+                                url: env.TELEGRAM_LOGIN_URL
                             }
                         }
                     ]
