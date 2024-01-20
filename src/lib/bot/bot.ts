@@ -6,15 +6,15 @@ const bot = new TelegramBot(env.BOT_TOKEN, {
     polling: true
 });
 
-const startMessage = (username?: string) => `
-Привет, @${username} 👋
+const startMessage = (username?: string, firstName?: string) => {
+    const hello = username
+        ? `Привет, @${username} 👋`
+        : firstName
+            ? `Привет, ${firstName} 👋`
+            : 'Привет 👋';
 
-Добро пожаловать в Tanpin — платформу нового поколения, которая соединяет игры с миром блокчейна!
-
-Уже скоро ты сможешь окунуться в мир уникальных предметов BlackRussia!
-
-Нажми на кнопку ниже, чтобы войти на Tanpin.
-`;
+    return `${hello}\n\nДобро пожаловать в Tanpin — платформу нового поколения, которая соединяет игры с миром блокчейна!\n\nУже скоро ты сможешь окунуться в мир уникальных предметов BlackRussia!\n\nНажми на кнопку ниже, чтобы войти на Tanpin.`;
+};
 
 export const startBot = () => {
     bot.setMyCommands([
@@ -24,8 +24,14 @@ export const startBot = () => {
     bot.onText(/\/start/, (msg) => {
         const chatId = msg.chat.id;
 
-        bot.sendPhoto(chatId, fs.readFileSync(env.START_PROMO_IMAGE), {
-            caption: startMessage(msg.from?.username),
+        const image = fs.readFileSync(env.START_PROMO_IMAGE);
+        const imageOptions = {
+            filename: 'start-promo.jpeg',
+            contentType: 'image/jpeg'
+        };
+
+        bot.sendPhoto(chatId, image, {
+            caption: startMessage(msg.from?.username, msg.from?.first_name),
             reply_markup: {
                 inline_keyboard: [
                     [
@@ -38,6 +44,6 @@ export const startBot = () => {
                     ]
                 ]
             }
-        });
+        }, imageOptions);
     });
 };
