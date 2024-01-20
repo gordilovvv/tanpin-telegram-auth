@@ -7,7 +7,7 @@ import { badRequest, serverError, success } from './response';
 import { decrypt } from 'lib/aes';
 import { isHex } from 'viem';
 import { getCurrentTimestampSeconds } from 'utils/timestamp';
-import { logError } from 'utils/logger';
+import { logError, logger } from 'utils/logger';
 
 import { encryptData } from 'packages/tanpin-tg-cipher/cipher';
 
@@ -19,6 +19,8 @@ export const getSessionHandler = async (request: IRequest) => {
     if (!query.pubKey || !isHex(`0x${query.pubKey}`)) {
         return badRequest('pubKey bad or empty!');
     }
+
+    logger.http(`Request session with pubKey ${query.pubKey}`);
 
     const client = await pool.connect();
 
