@@ -4,7 +4,7 @@ import { Address } from 'viem';
 
 export type User = {
     tgUserId: string,
-    tgUsername: string,
+    tgUsername?: string,
     address: Address,
     privateKey: string,
     privateKeyIv: string,
@@ -13,7 +13,7 @@ export type User = {
 
 export type UserStorage = {
     tg_user_id: string,
-    tg_username: string,
+    tg_username: string | null,
     address: string,
     private_key: string,
     private_key_iv: string,
@@ -23,7 +23,7 @@ export type UserStorage = {
 export const toRowStorage = (user: User) => {
     const userStorage: UserStorage = {
         tg_user_id: user.tgUserId,
-        tg_username: user.tgUsername,
+        tg_username: user.tgUsername ?? null,
         address: user.address,
         private_key: user.privateKey,
         private_key_iv: user.privateKeyIv,
@@ -36,7 +36,7 @@ export const toRowStorage = (user: User) => {
 export const fromRowStorage = (userStorage: UserStorage) => {
     const user: User = {
         tgUserId: userStorage.tg_user_id,
-        tgUsername: userStorage.tg_username,
+        tgUsername: userStorage.tg_username ?? undefined,
         address: userStorage.address as Address,
         privateKey: userStorage.private_key,
         privateKeyIv: userStorage.private_key_iv,

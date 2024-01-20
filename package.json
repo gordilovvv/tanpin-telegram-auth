@@ -2,7 +2,9 @@
   "name": "tanpin-telegram-auth-bot",
   "version": "0.0.1",
   "scripts": {
-    "start": "ts-node src/main.ts"
+    "start": "ts-node src/main.ts",
+    "build": "tsc && tsc-alias",
+    "deploy": "pm2 start dist/main.js --name TanpinTelegramAuth"
   },
   "dependencies": {
     "@whatwg-node/server": "^0.9.23",
@@ -28,6 +30,7 @@
     "@typescript-eslint/parser": "^5.60.1",
     "eslint": "^8.43.0",
     "ts-node": "^10.9.2",
+    "tsc-alias": "^1.8.8",
     "tsconfig-paths": "^4.2.0",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"

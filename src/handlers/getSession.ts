@@ -49,7 +49,6 @@ export const getSessionHandler = async (request: IRequest) => {
 
         const privateKey = decrypt(user.privateKey, user.privateKeyIv, {
             tgId: user.tgUserId,
-            username: user.tgUsername,
             secret: env.ENCRYPTION_SECRET,
             salt: user.privateKeySalt
         });

@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS users (
     tg_user_id VARCHAR(255) PRIMARY KEY,
-    tg_username VARCHAR(255) NOT NULL,
+    tg_username VARCHAR(255) DEFAULT NULL,
     address CHAR(42) NOT NULL,
     private_key TEXT NOT NULL,
     private_key_iv TEXT NOT NULL,

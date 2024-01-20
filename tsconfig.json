@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "skipLibCheck": false,
+    "skipLibCheck": true,
     "esModuleInterop": true,
     "allowSyntheticDefaultImports": true,
     "strict": true,
@@ -24,19 +24,19 @@
       "DOM",
       "DOM.Iterable"
     ],
-    "baseUrl": "./",
+    "rootDir": "./src",
+    "baseUrl": "./src",
     "outDir": "./dist",
     "paths": {
       "*": [
-        "src/*"
+        "./*"
       ],
       "@environment": [
-        "environment.ts"
+        "./environment.ts"
       ]
     }
   },
   "ts-node": {
-    // Do not forget to `npm i -D tsconfig-paths`
     "require": [
       "tsconfig-paths/register"
     ]
