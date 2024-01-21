@@ -71,6 +71,14 @@ export const selectSessionsByUserId = async (client: PoolClient, userId: string)
     return sessions.rows.map(fromRowStorage);
 };
 
+export const selectExpiredSessions = async (client: PoolClient, currentTimestamp: number) => {
+    const expiredSessions = await client.query<{ session_pub_key: SessionStorage['session_pub_key'] }>(format('SELECT session_pub_key FROM sessions WHERE session_expired_timestamp <= %L;', currentTimestamp), []);
+
+    return expiredSessions.rows.map(({ session_pub_key }) => ({
+        sessionPubKey: session_pub_key
+    }));
+};
+
 export const insertSession = async (client: PoolClient, session: Session) => {
     const sessionStorage = toRowStorage(session);
 
