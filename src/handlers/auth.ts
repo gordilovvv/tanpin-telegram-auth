@@ -16,10 +16,10 @@ import { getPublic } from 'packages/tanpin-tg-cipher/elliptic';
 
 const validationSchema = z.object({
     id: z.string(),
-    first_name: z.string().optional(),
-    last_name: z.string().optional(),
-    username: z.string().optional(),
-    photo_url: z.string().optional(),
+    first_name: z.string(),
+    last_name: z.string(),
+    username: z.string(),
+    photo_url: z.string(),
     auth_date: z.string(),
     hash: z.string(),
     sessionId: z.string(),
@@ -27,34 +27,35 @@ const validationSchema = z.object({
 });
 
 export const authHandler = async (request: IRequest) => {
-    const { sessionId, sessionLifetime, ...query } = request.query as TelegramLoginParams & {
+    const query = request.query as TelegramLoginParams & {
         sessionId: string,
         sessionLifetime: string
     };
-
-    const validation = validationSchema.safeParse({ sessionId, sessionLifetime, ...query });
+    const validation = validationSchema.safeParse(query);
 
     if (!validation.success) {
         return badRequest('Data are missing in the request!');
     }
 
+    const { sessionId, sessionLifetime, ...parsedQuery } = validation.data;
+
     if (parseInt(sessionLifetime) <= 0) {
         return badRequest('Session lifetime is zero or smaller!');
     }
 
-    logger.http('Auth request', query);
+    logger.http('Auth request', parsedQuery);
 
     const client = await pool.connect();
 
     try {
         await client.query('BEGIN');
 
-        const telegramUser = verifyTelegramLogin(query);
+        const telegramUser = verifyTelegramLogin(parsedQuery);
         let localUser = await selectUserByTelegramId(client, telegramUser.userId) as User;
 
         // If user doesn't exist - insert to db and create wallet
         if (!localUser) {
-            logger.info(`Create new wallet for user: ${query.first_name} ${query.last_name}`);
+            logger.info(`Create new wallet for user: ${parsedQuery.first_name} ${parsedQuery.last_name}`);
 
             const wallet = generateWallet();
             const encryptedPrivateKey = encrypt(wallet.privateKey, {
@@ -97,7 +98,7 @@ export const authHandler = async (request: IRequest) => {
             sessionExpiredTimestamp: expiredTimestamp
         });
 
-        logger.verbose(`Create new session for ${query.first_name} ${query.last_name}, pubKey: ${pubKey}`);
+        logger.verbose(`Create new session for ${parsedQuery.first_name} ${parsedQuery.last_name}, pubKey: ${pubKey}`);
 
         await client.query('COMMIT');
 
