@@ -16,10 +16,10 @@ import { getPublic } from 'packages/tanpin-tg-cipher/elliptic';
 
 const validationSchema = z.object({
     id: z.string(),
-    first_name: z.string(),
-    last_name: z.string(),
-    username: z.string(),
-    photo_url: z.string(),
+    first_name: z.string().optional(),
+    last_name: z.string().optional(),
+    username: z.string().optional(),
+    photo_url: z.string().optional(),
     auth_date: z.string(),
     hash: z.string(),
     sessionId: z.string(),
