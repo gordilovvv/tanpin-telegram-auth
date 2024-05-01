@@ -1,9 +1,40 @@
-export const parseReferralCode = (match: RegExpExecArray | null) => {
-    return match?.[1]?.split('_')?.[1];
+/**
+ * @example /deposit
+ */
+export const parseRedirectUrl = (match: RegExpExecArray | null) => {
+    const encodedString = match?.[1];
+    if (!encodedString) {
+        return;
+    }
+
+    const decodedString = atob(encodedString);
+    const matches = decodedString.match(/(?:^|&)(?:u_([^&]*))/);
+
+    return matches?.[1];
 };
 
-export const createLoginUrl = (baseUrl: string, referralCode?: string) => {
+export const parseReferralCode = (match: RegExpExecArray | null) => {
+    const encodedString = match?.[1];
+    if (!encodedString) {
+        return;
+    }
+
+    const decodedString = atob(encodedString);
+    const matches = decodedString.match(/(?:^|&)(?:r_([^&]*))/);
+
+    return matches?.[1];
+};
+
+export const createLoginUrl = (
+    baseUrl: string,
+    redirectUrl?: string,
+    referralCode?: string
+) => {
     const url = new URL(baseUrl);
+
+    if (redirectUrl) {
+        url.searchParams.append('u', encodeURIComponent(redirectUrl));
+    }
 
     if (referralCode) {
         url.searchParams.append('r', referralCode);

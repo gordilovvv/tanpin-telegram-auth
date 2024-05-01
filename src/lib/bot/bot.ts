@@ -1,5 +1,5 @@
 import TelegramBot from 'node-telegram-bot-api';
-import { createLoginUrl, parseReferralCode } from './utils';
+import { createLoginUrl, parseReferralCode, parseRedirectUrl } from './utils';
 import { env } from '@environment';
 import fs from 'fs';
 
@@ -24,6 +24,7 @@ export const startBot = () => {
 
     bot.onText(/^\/start(?:\s(.*))?$/, (msg, match) => {
         const chatId = msg.chat.id;
+        const redirectUrl = parseRedirectUrl(match);
         const referralCode = parseReferralCode(match);
 
         const image = fs.readFileSync(env.START_PROMO_IMAGE);
@@ -40,8 +41,14 @@ export const startBot = () => {
                         {
                             text: '🚀 Войти с Telegram',
                             login_url: {
-                                url: createLoginUrl(env.TELEGRAM_LOGIN_URL, referralCode)
+                                url: createLoginUrl(env.TELEGRAM_LOGIN_URL, redirectUrl, referralCode)
                             }
+                        }
+                    ],
+                    [
+                        {
+                            text: '💚 Сообщество Tanpin',
+                            url: env.TELEGRAM_RU_CHANNEL_URL
                         }
                     ]
                 ]
