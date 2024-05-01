@@ -35,7 +35,7 @@ export const createLoginUrl = (
     const url = new URL(baseUrl);
 
     if (redirectUrl) {
-        url.searchParams.append('u', encodeURIComponent(redirectUrl));
+        url.searchParams.append('u', redirectUrl);
     }
 
     if (referralCode) {
