@@ -1,3 +1,5 @@
+import base64url from 'base64url';
+
 /**
  * @example /deposit
  */
@@ -7,7 +9,7 @@ export const parseRedirectUrl = (match: RegExpExecArray | null) => {
         return;
     }
 
-    const decodedString = atob(encodedString);
+    const decodedString = base64url.decode(encodedString);
     const matches = decodedString.match(/(?:^|&)(?:u_([^&]*))/);
 
     return matches?.[1];
@@ -19,7 +21,7 @@ export const parseReferralCode = (match: RegExpExecArray | null) => {
         return;
     }
 
-    const decodedString = atob(encodedString);
+    const decodedString = base64url.decode(encodedString);
     const matches = decodedString.match(/(?:^|&)(?:r_([^&]*))/);
 
     return matches?.[1];
