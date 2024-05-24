@@ -27,10 +27,24 @@ export const parseReferralCode = (match: RegExpExecArray | null) => {
     return matches?.[1];
 };
 
+/** Season Pass */
+export const parseAuthSecret = (match: RegExpExecArray | null) => {
+    const encodedString = match?.[1];
+    if (!encodedString) {
+        return;
+    }
+
+    const decodedString = base64url.decode(encodedString);
+    const matches = decodedString.match(/(?:^|&)(?:s_([^&]*))/);
+
+    return matches?.[1];
+};
+
 export const createLoginUrl = (
     baseUrl: string,
     redirectUrl?: string,
-    referralCode?: string
+    referralCode?: string,
+    authSecret?: string
 ) => {
     const url = new URL(baseUrl);
 
@@ -40,6 +54,10 @@ export const createLoginUrl = (
 
     if (referralCode) {
         url.searchParams.append('r', referralCode);
+    }
+
+    if (authSecret) {
+        url.searchParams.append('s', base64url.encode(authSecret));
     }
 
     return url.toString();
