@@ -1,0 +1,56 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "alwaysStrict": true,
+    "forceConsistentCasingInFileNames": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "noEmit": false,
+    "allowJs": true,
+    "noImplicitThis": false,
+    "noErrorTruncation": true,
+    "noUnusedLocals": false,
+    "types": [
+      "node"
+    ],
+    "noUnusedParameters": false,
+    "lib": [
+      "ESNext",
+      "DOM",
+      "DOM.Iterable"
+    ],
+    "rootDir": "./src",
+    "baseUrl": "./src",
+    "outDir": "./dist",
+    "paths": {
+      "*": [
+        "./*"
+      ]
+    }
+  },
+  "ts-node": {
+    "require": [
+      "tsconfig-paths/register"
+    ]
+  },
+  "include": [
+    "src",
+    "test",
+    "*.js",
+    "*.cjs",
+    "*.mjs",
+    "*.ts",
+  ],
+  "exclude": [
+    ".esbuild",
+    "node_modules",
+    "coverage",
+    "dist",
+    "_"
+  ]
+}
