@@ -20,6 +20,7 @@ const startMessage = (username?: string, firstName?: string) => {
 };
 
 const queue = new PQueue({
+    concurrency: 5,
     interval: parseInt(env.TELEGRAM_API_INTERVAL),
     intervalCap: parseInt(env.TELEGRAM_API_INTERVAL_CAP)
 });
