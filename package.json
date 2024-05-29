@@ -4,7 +4,7 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "build": "tsc && tsc-alias",
-    "deploy": "pm2 start dist/main.js --name TanpinTelegramBot"
+    "deploy": "pm2 start dist/index.js --name TanpinTelegramBot"
   },
   "dependencies": {
     "@whatwg-node/server": "^0.9.34",
