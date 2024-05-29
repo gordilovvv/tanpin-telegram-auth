@@ -6,7 +6,7 @@
     "start:bot": "ts-node src/bot.ts",
     "build": "tsc && tsc-alias",
     "deploy:api": "pm2 start dist/main.js --name TanpinTelegramAuthApi",
-    "deploy:bot": "pm2 start dist/main.js --name TanpinTelegramAuthBot"
+    "deploy:bot": "pm2 start dist/bot.js --name TanpinTelegramAuthBot"
   },
   "dependencies": {
     "@whatwg-node/server": "^0.9.23",
