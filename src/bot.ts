@@ -43,11 +43,11 @@ export const startBot = () => {
         const referralCode = parseReferralCode(match);
         const authSecret = parseAuthSecret(match);
 
-        logger.info({
+        logger.info(`${msg?.from?.username || msg?.from?.first_name || 'unknown user'} request ${JSON.stringify({
             redirectUrl,
             referralCode,
             authSecret
-        });
+        })}`);
 
         queue.add(async () => {
             try {
