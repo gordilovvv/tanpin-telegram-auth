@@ -3,7 +3,8 @@ import { createLoginUrl, parseReferralCode, parseRedirectUrl, parseAuthSecret } 
 import { logError } from 'utils/logger';
 import { env } from '@environment';
 import PQueue from 'p-queue';
-import fs from 'fs';
+// import fs from 'fs';
+import { sleep } from 'utils/promises';
 
 const bot = new TelegramBot(env.BOT_TOKEN, {
     polling: true
@@ -20,7 +21,7 @@ const startMessage = (username?: string, firstName?: string) => {
 };
 
 const queue = new PQueue({
-    concurrency: 5,
+    concurrency: 10,
     interval: parseInt(env.TELEGRAM_API_INTERVAL),
     intervalCap: parseInt(env.TELEGRAM_API_INTERVAL_CAP)
 });
@@ -42,16 +43,37 @@ export const startBot = () => {
             authSecret
         });
 
-        const image = fs.readFileSync(env.START_PROMO_IMAGE);
-        const imageOptions = {
-            filename: 'start-promo.jpeg',
-            contentType: 'image/jpeg'
-        };
+        // const image = fs.readFileSync(env.START_PROMO_IMAGE);
+        // const imageOptions = {
+        //     filename: 'start-promo.jpeg',
+        //     contentType: 'image/jpeg'
+        // };
 
-        queue.add(() => {
+        queue.add(async () => {
             try {
-                bot.sendPhoto(chatId, image, {
-                    caption: startMessage(msg.from?.username, msg.from?.first_name),
+                // async bot.sendPhoto(chatId, image, {
+                //     caption: startMessage(msg.from?.username, msg.from?.first_name),
+                //     reply_markup: {
+                //         inline_keyboard: [
+                //             [
+                //                 {
+                //                     text: '🚀 Войти с Telegram',
+                //                     login_url: {
+                //                         url: createLoginUrl(env.TELEGRAM_LOGIN_URL, redirectUrl, referralCode, authSecret)
+                //                     }
+                //                 }
+                //             ],
+                //             [
+                //                 {
+                //                     text: '💚 Сообщество Tanpin',
+                //                     url: env.TELEGRAM_RU_CHANNEL_URL
+                //                 }
+                //             ]
+                //         ]
+                //     }
+                // }, imageOptions);
+                await sleep(100);
+                await bot.sendMessage(chatId, startMessage(msg.from?.username, msg.from?.first_name), {
                     reply_markup: {
                         inline_keyboard: [
                             [
@@ -70,7 +92,7 @@ export const startBot = () => {
                             ]
                         ]
                     }
-                }, imageOptions);
+                });
             } catch (error) {
                 logError(error);
             }
