@@ -15,7 +15,7 @@ const router = Router();
 router
     .all('*', preflight)
     .get('/', () => json({
-        message: 'TG Bot 👋'
+        message: 'Telegram Bot 👋'
     }));
 
 router.post(`/bot${env.TELEGRAM_WEB_HOOK_SECRET}`, (request) => webhookHandler(request));

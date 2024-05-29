@@ -43,7 +43,7 @@ export const startBot = () => {
         const referralCode = parseReferralCode(match);
         const authSecret = parseAuthSecret(match);
 
-        console.log({
+        logger.info({
             redirectUrl,
             referralCode,
             authSecret
@@ -86,7 +86,7 @@ export const webhookHandler = async (request: IRequest) => {
         if ('update_id' in body) {
             const update = body as Update;
 
-            console.log(`msg from bot ${update.message}`);
+            logger.info(`bot start command ${update.message?.from?.username || update.message?.from?.first_name || 'unknown user'}`);
             bot.processUpdate(update);
         } else {
             logger.warn(body);
