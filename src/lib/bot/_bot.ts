@@ -26,7 +26,7 @@ const queue = new PQueue({
     intervalCap: parseInt(env.TELEGRAM_API_INTERVAL_CAP)
 });
 
-export const startBot = () => {
+const startBot = () => {
     bot.setMyCommands([
         { command: 'start', description: 'Начать' }
     ]);
@@ -99,3 +99,5 @@ export const startBot = () => {
         });
     });
 };
+
+startBot();

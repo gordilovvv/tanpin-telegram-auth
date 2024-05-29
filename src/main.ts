@@ -4,7 +4,6 @@ import { createServerAdapter } from '@whatwg-node/server';
 import { authHandler } from 'handlers/auth';
 import { getSessionHandler } from 'handlers/getSession';
 import { setSessionHandler } from 'handlers/setSession';
-import { startBot } from 'lib/bot';
 import { startSessionsCleaner } from 'lib/session';
 import { logger } from 'utils/logger';
 import { env } from '@environment';
@@ -37,7 +36,6 @@ const ittyServer = createServerAdapter(
 );
 const httpServer = createServer(ittyServer);
 
-startBot();
 startSessionsCleaner();
 
 logger.info(`Start app on port ${env.APP_PORT}`);

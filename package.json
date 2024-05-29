@@ -3,8 +3,10 @@
   "version": "0.0.1",
   "scripts": {
     "start": "ts-node src/main.ts",
+    "start:bot": "ts-node src/bot.ts",
     "build": "tsc && tsc-alias",
-    "deploy": "pm2 start dist/main.js --name TanpinTelegramAuth"
+    "deploy:api": "pm2 start dist/main.js --name TanpinTelegramAuthApi",
+    "deploy:bot": "pm2 start dist/main.js --name TanpinTelegramAuthBot"
   },
   "dependencies": {
     "@whatwg-node/server": "^0.9.23",
