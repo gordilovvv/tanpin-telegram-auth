@@ -1,9 +1,10 @@
 import { IRequest, error, json } from 'itty-router';
 import TelegramBot, { Update } from 'node-telegram-bot-api';
-import { createLoginUrl, parseReferralCode, parseRedirectUrl, parseAuthSecret, sleep } from 'utils';
+import { createLoginUrl, parseReferralCode, parseRedirectUrl, parseAuthSecret } from 'utils';
 import { logError, logger } from 'logger';
 import { env } from 'environment';
 import PQueue from 'p-queue';
+import fs from 'fs';
 
 const bot = new TelegramBot(env.BOT_TOKEN, {
     webHook: true
@@ -17,6 +18,12 @@ const startMessage = (username?: string, firstName?: string) => {
             : 'Привет 👋';
 
     return `${hello}\n\nДобро пожаловать в Tanpin — платформу нового поколения, которая соединяет игры с миром блокчейна!\n\nУже скоро ты сможешь окунуться в мир уникальных предметов BlackRussia!\n\nНажми на кнопку ниже, чтобы войти на Tanpin.`;
+};
+
+const image = fs.readFileSync(env.START_PROMO_IMAGE);
+const imageOptions = {
+    filename: 'start-promo.jpeg',
+    contentType: 'image/jpeg'
 };
 
 const queue = new PQueue({
@@ -42,37 +49,10 @@ export const startBot = () => {
             authSecret
         });
 
-        // const image = fs.readFileSync(env.START_PROMO_IMAGE);
-        // const imageOptions = {
-        //     filename: 'start-promo.jpeg',
-        //     contentType: 'image/jpeg'
-        // };
-
         queue.add(async () => {
             try {
-                // async bot.sendPhoto(chatId, image, {
-                //     caption: startMessage(msg.from?.username, msg.from?.first_name),
-                //     reply_markup: {
-                //         inline_keyboard: [
-                //             [
-                //                 {
-                //                     text: '🚀 Войти с Telegram',
-                //                     login_url: {
-                //                         url: createLoginUrl(env.TELEGRAM_LOGIN_URL, redirectUrl, referralCode, authSecret)
-                //                     }
-                //                 }
-                //             ],
-                //             [
-                //                 {
-                //                     text: '💚 Сообщество Tanpin',
-                //                     url: env.TELEGRAM_RU_CHANNEL_URL
-                //                 }
-                //             ]
-                //         ]
-                //     }
-                // }, imageOptions);
-                await sleep(50);
-                await bot.sendMessage(chatId, startMessage(msg.from?.username, msg.from?.first_name), {
+                await bot.sendPhoto(chatId, image, {
+                    caption: startMessage(msg.from?.username, msg.from?.first_name),
                     reply_markup: {
                         inline_keyboard: [
                             [
@@ -91,7 +71,7 @@ export const startBot = () => {
                             ]
                         ]
                     }
-                });
+                }, imageOptions);
             } catch (error) {
                 logError(error);
             }
