@@ -1,14 +1,13 @@
 import { IRequest, error, json } from 'itty-router';
 import TelegramBot, { Update } from 'node-telegram-bot-api';
-import { createLoginUrl, parseReferralCode, parseRedirectUrl, parseAuthSecret } from 'utils';
+import { createLoginUrl, parseReferralCode, parseRedirectHash, parseAuthSecret } from 'utils';
+import { generateTelegramRedirectHash, getRedirectUrlByHash, parseTelegramRedirectUrl } from 'redirect';
 import { logError, logger } from 'logger';
 import { env } from 'environment';
 import PQueue from 'p-queue';
 import fs from 'fs';
 
-const bot = new TelegramBot(env.BOT_TOKEN, {
-    webHook: true
-});
+const bot = new TelegramBot(env.BOT_TOKEN);
 
 const startMessage = (username?: string, firstName?: string) => {
     const hello = username
@@ -39,18 +38,23 @@ export const startBot = () => {
 
     bot.onText(/^\/start(?:\s(.*))?$/, (msg, match) => {
         const chatId = msg.chat.id;
-        const redirectUrl = parseRedirectUrl(match);
+        const redirectHash = parseRedirectHash(match);
         const referralCode = parseReferralCode(match);
         const authSecret = parseAuthSecret(match);
 
-        logger.info(`${msg?.from?.username || msg?.from?.first_name || 'unknown user'} request ${JSON.stringify({
-            redirectUrl,
-            referralCode,
-            authSecret
-        })}`);
-
         queue.add(async () => {
             try {
+                const redirectUrl = redirectHash
+                    ? await getRedirectUrlByHash(redirectHash)
+                    : null;
+
+                console.log(`${msg?.from?.username || msg?.from?.first_name || 'unknown user'} request ${JSON.stringify({
+                    redirectHash,
+                    redirectUrl,
+                    referralCode,
+                    authSecret
+                })}`);
+
                 await bot.sendPhoto(chatId, image, {
                     caption: startMessage(msg.from?.username, msg.from?.first_name),
                     reply_markup: {
@@ -59,7 +63,12 @@ export const startBot = () => {
                                 {
                                     text: '🚀 Войти с Telegram',
                                     login_url: {
-                                        url: createLoginUrl(env.TELEGRAM_LOGIN_URL, redirectUrl, referralCode, authSecret)
+                                        url: createLoginUrl(
+                                            env.TELEGRAM_LOGIN_URL,
+                                            redirectUrl || undefined,
+                                            referralCode,
+                                            authSecret
+                                        )
                                     }
                                 }
                             ],
@@ -97,5 +106,20 @@ export const webhookHandler = async (request: IRequest) => {
     } catch (err) {
         logError(err);
         return error(500, 'failed');
+    }
+};
+
+export const getTelegramRedirectHashHandler = async (request: IRequest) => {
+    const parsedUrl = parseTelegramRedirectUrl(request.query.url);
+    if (!parsedUrl) {
+        return error(400, { error: 'Invalid url' });
+    }
+
+    try {
+        const hash = await generateTelegramRedirectHash(parsedUrl);
+        return json({ h: hash });
+    } catch (e) {
+        logError(e);
+        return error(500, { error: 'Something failed' });
     }
 };

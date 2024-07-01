@@ -12,7 +12,10 @@ export const environmentSchema = z.object({
     TELEGRAM_RU_CHANNEL_URL: z.string(),
     TELEGRAM_WEB_HOOK_SECRET: z.string(),
     TELEGRAM_API_INTERVAL: z.string(),
-    TELEGRAM_API_INTERVAL_CAP: z.string()
+    TELEGRAM_API_INTERVAL_CAP: z.string(),
+    MEMCACHED_HOST: z.string(),
+    MEMCACHED_PORT: z.string(),
+    MEMCACHED_MEMORY: z.string(),
 });
 
 export type Environment = z.infer<typeof environmentSchema>

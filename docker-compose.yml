@@ -1,18 +1,18 @@
 version: '3.4'
 
 services:
-  tanpin_telegram_auth_db:
-    image: postgres
-    container_name: tanpin_telegram_auth_db
+  auth_bot_memcached:
+    image: memcached:1.6.24
+    container_name: auth_bot_memcached
     restart: always
-    environment:
-      POSTGRES_DB: ${PGDATABASE}
-      POSTGRES_USER: ${PGUSER}
-      POSTGRES_PASSWORD: ${PGPASSWORD}
-    volumes:
-      - data:/var/lib/postgresql/data
     ports:
-      - '${PGPORT}:5432'
+      - '${MEMCACHED_PORT}:11211'
+    environment:
+      MEMCACHED_MEMORY: ${MEMCACHED_MEMORY}
+    volumes:
+      - memcached_data:/data
 
 volumes:
-  data:
+  memcached_data:
+
+# закрой порт на авторизацию

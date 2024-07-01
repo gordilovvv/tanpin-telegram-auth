@@ -1,42 +1,38 @@
 import base64url from 'base64url';
 
 /**
- * @example /deposit
+ * По хешу редиректа мы получим ссылку (обход ограничение в тг 64 символа)
+ * 
+ * @example h2GYf3mgKCN4XilB
  */
-export const parseRedirectUrl = (match: RegExpExecArray | null) => {
-    const encodedString = match?.[1];
-    if (!encodedString) {
+export const parseRedirectHash = (match: RegExpExecArray | null) => {
+    const str = match?.[1];
+    if (!str) {
         return;
     }
 
-    const decodedString = base64url.decode(encodedString);
-    const matches = decodedString.match(/(?:^|&)(?:u_([^&]*))/);
-
+    const matches = str.match(/(?:^|&)(?:u_([^&]*))/);
     return matches?.[1];
 };
 
 export const parseReferralCode = (match: RegExpExecArray | null) => {
-    const encodedString = match?.[1];
-    if (!encodedString) {
+    const str = match?.[1];
+    if (!str) {
         return;
     }
 
-    const decodedString = base64url.decode(encodedString);
-    const matches = decodedString.match(/(?:^|&)(?:r_([^&]*))/);
-
+    const matches = str.match(/(?:^|&)(?:r_([^&]*))/);
     return matches?.[1];
 };
 
 /** Season Pass */
 export const parseAuthSecret = (match: RegExpExecArray | null) => {
-    const encodedString = match?.[1];
-    if (!encodedString) {
+    const str = match?.[1];
+    if (!str) {
         return;
     }
 
-    const decodedString = base64url.decode(encodedString);
-    const matches = decodedString.match(/(?:^|&)(?:s_([^&]*))/);
-
+    const matches = str.match(/(?:^|&)(?:s_([^&]*))/);
     return matches?.[1];
 };
 
@@ -47,15 +43,12 @@ export const createLoginUrl = (
     authSecret?: string
 ) => {
     const url = new URL(baseUrl);
-
     if (redirectUrl) {
         url.searchParams.append('u', redirectUrl);
     }
-
     if (referralCode) {
         url.searchParams.append('r', referralCode);
     }
-
     if (authSecret) {
         url.searchParams.append('s', base64url.encode(authSecret));
     }
