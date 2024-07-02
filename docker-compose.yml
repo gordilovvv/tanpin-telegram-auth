@@ -14,5 +14,3 @@ services:
 
 volumes:
   memcached_data:
-
-# закрой порт на авторизацию
