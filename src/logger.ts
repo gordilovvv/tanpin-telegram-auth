@@ -1,14 +1,1 @@
-import pino from 'pino';
-
-export const logger = pino({
-    transport: {
-        target: 'pino-pretty',
-        options: {
-            colorize: true
-        }
-    }
-});
-
-export function logError(error: any) {
-    logger.error(error);
-}
+export const logger = (msg: string) => console.log(`> ${msg}`, new Date().toISOString());

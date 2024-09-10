@@ -3,6 +3,7 @@ build
 dist
 .DS_Store
 .env
+.env.test
 .env.production
 .env.development
 logs

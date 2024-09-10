@@ -1,16 +1,20 @@
 import { createServerAdapter } from '@whatwg-node/server';
-import { Router, createCors, error, json } from 'itty-router';
+import { cors, error, json, Router } from 'itty-router';
+import { runBot, webhookHandler } from 'bot';
 import { createServer } from 'http';
-import { getTelegramRedirectHashHandler, startBot, webhookHandler } from 'bot';
 import { logger } from 'logger';
 import { env } from 'environment';
 
-const { preflight, corsify } = createCors({
-    origins: ['*'],
-    methods: ['HEAD', 'GET', 'POST']
+const { preflight, corsify } = cors({
+    origin: '*',
+    allowMethods: ['HEAD', 'GET', 'POST']
 });
 
-const router = Router();
+const router = Router({
+    before: [preflight],
+    finally: [corsify],
+    catch: error
+});
 
 router
     .all('*', preflight)
@@ -18,24 +22,13 @@ router
         message: 'Welcome 👋'
     }));
 
-router.post(`/bot${env.TELEGRAM_WEB_HOOK_SECRET}`, (request) => webhookHandler(request));
-router.get('/redirect-url', (request) => getTelegramRedirectHashHandler(request));
+router.post(`/bot${env.TELEGRAM_WEB_HOOK_SECRET}`, webhookHandler);
 router.all('*', () => error(404));
 
-const ittyServer = createServerAdapter(
-    (request) => router
-        .handle(request)
-        .then(json)
-        .catch(error)
-        .then(corsify)
-);
+const ittyServer = createServerAdapter(router.fetch);
 const httpServer = createServer(ittyServer);
 
 httpServer.listen(env.APP_PORT);
-startBot();
+runBot();
 
-logger.info(`
-    Start bot on port ${env.APP_PORT}
-    Webhook url: ${env.APP_URL}/bot${env.TELEGRAM_WEB_HOOK_SECRET}
-    Redirect handler url: ${env.APP_URL}/redirect-url
-`);
+logger(`🟢 Start telegram bot on port ${env.APP_PORT}\nWebhook url: ${env.APP_URL}/bot${env.TELEGRAM_WEB_HOOK_SECRET}`);

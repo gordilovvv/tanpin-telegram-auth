@@ -1,89 +1,95 @@
 import { IRequest, error, json } from 'itty-router';
 import TelegramBot, { Update } from 'node-telegram-bot-api';
-import { createLoginUrl, parseReferralCode, parseRedirectHash, parseAuthSecret } from 'utils';
-import { generateTelegramRedirectHash, getRedirectUrlByHash, parseTelegramRedirectUrl } from 'redirect';
-import { logError, logger } from 'logger';
-import { env } from 'environment';
+import { authMessage, startMessage } from 'messages';
 import PQueue from 'p-queue';
-import fs from 'fs';
+import pRetry from 'p-retry';
+import { logger } from 'logger';
+import { env } from 'environment';
 
-const bot = new TelegramBot(env.BOT_TOKEN);
-
-const startMessage = (username?: string, firstName?: string) => {
-    const hello = username
-        ? `Привет, @${username} 👋`
-        : firstName
-            ? `Привет, ${firstName} 👋`
-            : 'Привет 👋';
-
-    return `${hello}\n\nДобро пожаловать в Tanpin — платформу нового поколения, которая соединяет игры с миром блокчейна!\n\nУже скоро ты сможешь окунуться в мир уникальных предметов BlackRussia!\n\nНажми на кнопку ниже, чтобы войти на Tanpin.`;
-};
-
-const image = fs.readFileSync(env.START_PROMO_IMAGE);
-const imageOptions = {
-    filename: 'start-promo.jpeg',
-    contentType: 'image/jpeg'
-};
+const bot = new TelegramBot(env.TELEGRAM_BOT_TOKEN);
 
 const queue = new PQueue({
     interval: parseInt(env.TELEGRAM_API_INTERVAL),
     intervalCap: parseInt(env.TELEGRAM_API_INTERVAL_CAP)
 });
 
-export const startBot = () => {
+/** Ссылка на авторизацию Telegram webview */
+const telegramLoginUrl = (url: string, tanpinHash?: string) => {
+    const parsedUrl = new URL(url);
+    if (tanpinHash) {
+        parsedUrl.searchParams.append('tanpin_hash', tanpinHash);
+    }
+    return parsedUrl.toString();
+};
+
+// @TODO: Доработать
+// 1. текст
+// 2. кнопки и тд
+export const runBot = () => {
     bot.setWebHook(`${env.APP_URL}/bot${env.TELEGRAM_WEB_HOOK_SECRET}`);
     bot.setMyCommands([
-        { command: 'start', description: 'Начать' }
+        { command: 'start', description: 'Start' },
     ]);
 
-    bot.onText(/^\/start(?:\s(.*))?$/, (msg, match) => {
+    // Обработка команды start
+    bot.onText(/\/start ?(.*)?/, (msg, match) => {
         const chatId = msg.chat.id;
-        const redirectHash = parseRedirectHash(match);
-        const referralCode = parseReferralCode(match);
-        const authSecret = parseAuthSecret(match);
+        const startParam = match?.[1];
+        console.log({ startParam });
 
-        queue.add(async () => {
-            try {
-                const redirectUrl = redirectHash
-                    ? await getRedirectUrlByHash(redirectHash)
-                    : null;
+        queue.add(() => {
+            return pRetry(async () => {
+                if (startParam?.length === 64) {
+                    const tanpinHash = startParam;
+                    return bot.sendMessage(chatId, authMessage(msg.from?.username, msg.from?.first_name), {
+                        parse_mode: 'Markdown',
+                        reply_markup: {
+                            inline_keyboard: [
+                                [
+                                    {
+                                        text: '🚀 Войти с Telegram',
+                                        login_url: {
+                                            url: telegramLoginUrl(env.TANPIN_AUTH_SYNC_URL, tanpinHash),
+                                            bot_username: env.TELEGRAM_BOT_USERNAME,
+                                            forward_text: 'Недоступно 🐾'
+                                        }
+                                    }
+                                ]
+                            ]
+                        }
+                    });
+                }
 
-                console.log(`${msg?.from?.username || msg?.from?.first_name || 'unknown user'} request ${JSON.stringify({
-                    redirectHash,
-                    redirectUrl,
-                    referralCode,
-                    authSecret
-                })}`);
-
-                await bot.sendPhoto(chatId, image, {
-                    caption: startMessage(msg.from?.username, msg.from?.first_name),
+                return bot.sendMessage(chatId, startMessage, {
+                    disable_web_page_preview: true,
+                    parse_mode: 'Markdown',
                     reply_markup: {
                         inline_keyboard: [
                             [
                                 {
-                                    text: '🚀 Войти с Telegram',
+                                    text: 'Войти на Tanpin',
                                     login_url: {
-                                        url: createLoginUrl(
-                                            env.TELEGRAM_LOGIN_URL,
-                                            redirectUrl || undefined,
-                                            referralCode,
-                                            authSecret
-                                        )
+                                        url: telegramLoginUrl(env.TANPIN_LOGIN_URL),
+                                        bot_username: env.TELEGRAM_BOT_USERNAME,
+                                        forward_text: 'Вход на Tanpin 💚',
+                                        request_write_access: true
                                     }
-                                }
+                                },
                             ],
                             [
                                 {
-                                    text: '💚 Сообщество Tanpin',
-                                    url: env.TELEGRAM_RU_CHANNEL_URL
+                                    text: 'Канал',
+                                    url: 'https://t.me/tanpin_ru'
                                 }
                             ]
                         ]
                     }
-                }, imageOptions);
-            } catch (error) {
-                logError(error);
-            }
+                });
+            }, {
+                retries: 2,
+                minTimeout: 100,
+                maxTimeout: 500
+            });
         });
     });
 };
@@ -95,31 +101,16 @@ export const webhookHandler = async (request: IRequest) => {
         if ('update_id' in body) {
             const update = body as Update;
 
-            logger.info(`bot start command ${update.message?.from?.username || update.message?.from?.first_name || 'unknown user'}`);
+            logger(`bot start command ${update.message?.from?.username || update.message?.from?.first_name || 'unknown user'}`);
             bot.processUpdate(update);
         } else {
-            logger.warn(body);
             return error(400, { error: 'invalid' });
         }
 
         return json({ ok: true }, { status: 200 });
-    } catch (err) {
-        logError(err);
+    } catch (err: any) {
+        logger(`🔴 bot error: ${err.message}`);
+        console.error(err);
         return error(500, 'failed');
-    }
-};
-
-export const getTelegramRedirectHashHandler = async (request: IRequest) => {
-    const parsedUrl = parseTelegramRedirectUrl(request.query.url);
-    if (!parsedUrl) {
-        return error(400, { error: 'Invalid url' });
-    }
-
-    try {
-        const hash = await generateTelegramRedirectHash(parsedUrl);
-        return json({ h: hash });
-    } catch (e) {
-        logError(e);
-        return error(500, { error: 'Something failed' });
     }
 };
