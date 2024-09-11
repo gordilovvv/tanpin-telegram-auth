@@ -1,6 +1,6 @@
 import { IRequest, error, json } from 'itty-router';
 import TelegramBot, { Update } from 'node-telegram-bot-api';
-import { authMessage, startMessage } from 'messages';
+import { authMessage, startImage, startMessage } from 'messages';
 import PQueue from 'p-queue';
 import pRetry from 'p-retry';
 import { logger } from 'logger';
@@ -22,9 +22,6 @@ const telegramLoginUrl = (url: string, tanpinHash?: string) => {
     return parsedUrl.toString();
 };
 
-// @TODO: Доработать
-// 1. текст
-// 2. кнопки и тд
 export const runBot = () => {
     bot.setWebHook(`${env.APP_URL}/bot${env.TELEGRAM_WEB_HOOK_SECRET}`);
     bot.setMyCommands([
@@ -35,7 +32,6 @@ export const runBot = () => {
     bot.onText(/\/start ?(.*)?/, (msg, match) => {
         const chatId = msg.chat.id;
         const startParam = match?.[1];
-        console.log({ startParam });
 
         queue.add(() => {
             return pRetry(async () => {
@@ -47,7 +43,7 @@ export const runBot = () => {
                             inline_keyboard: [
                                 [
                                     {
-                                        text: '🚀 Войти с Telegram',
+                                        text: '✈️ Войти с Telegram',
                                         login_url: {
                                             url: telegramLoginUrl(env.TANPIN_AUTH_SYNC_URL, tanpinHash),
                                             bot_username: env.TELEGRAM_BOT_USERNAME,
@@ -60,31 +56,37 @@ export const runBot = () => {
                     });
                 }
 
-                return bot.sendMessage(chatId, startMessage, {
-                    disable_web_page_preview: true,
+                return bot.sendPhoto(chatId, startImage.data, {
+                    caption: startMessage(msg.from?.username, msg.from?.first_name),
                     parse_mode: 'Markdown',
                     reply_markup: {
                         inline_keyboard: [
                             [
                                 {
-                                    text: 'Войти на Tanpin',
+                                    text: '🚀 Войти на Tanpin',
                                     login_url: {
                                         url: telegramLoginUrl(env.TANPIN_LOGIN_URL),
                                         bot_username: env.TELEGRAM_BOT_USERNAME,
-                                        forward_text: 'Вход на Tanpin 💚',
+                                        forward_text: 'Что такое Tanpin ? 💚🎉',
                                         request_write_access: true
                                     }
                                 },
                             ],
                             [
                                 {
-                                    text: 'Канал',
+                                    text: '🐱 Играть',
+                                    web_app: {
+                                        url: env.TANPIN_MINI_APP_URL
+                                    }
+                                },
+                                {
+                                    text: '💚 Канал',
                                     url: 'https://t.me/tanpin_ru'
                                 }
                             ]
                         ]
                     }
-                });
+                }, startImage.options);
             }, {
                 retries: 2,
                 minTimeout: 100,

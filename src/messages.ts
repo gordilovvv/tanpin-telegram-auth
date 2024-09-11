@@ -1,10 +1,24 @@
-export const startMessage = '*💚💚💚\nДобро пожаловать в Tanpin!*\nМы создаем маркетплейс для геймеров, где ты сможешь торговать предметами из любимых игр и зарабатывать на этом!';
+import fs from 'fs';
 
-export const authMessage = (username?: string, firstName?: string) => {
-    return `Привет, ${username || firstName}👋\n Нажми на кнопку ниже, войти. Все твои купленные предметы появятся в игре`;
+export const startImage = {
+    data: fs.readFileSync('assets/start.png'),
+    options: {
+        filename: 'start.png',
+        contentType: 'image/png'
+    }
 };
 
-// const imageOptions = {
-//     filename: 'start-promo.jpeg',
-//     contentType: 'image/jpeg'
-// };
+export const startMessage = (username?: string, firstName?: string) => `Привет, @${username || firstName} 👋
+
+Это Tanpin — маркетплейс для геймеров, где можно торговать предметами из любимых игр и зарабатывать на этом!
+
+Встречай первую коллекцию и завладей эксклюзивными предметами от Black Russia 🐻
+
+Играй и прокачивай твоего котика, фарми поинты и соревнуйся с другими игроками.
+
+Играешь один ? Заходи в канал, находи новых друзей, и играйте и зарабатывайте вместе!`;
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const authMessage = (username?: string, firstName?: string) => `Подключить Telegram 🔗
+
+*Нажми на кнопку ниже, чтобы войти.* После возвращайся в игру, твой аккаунт будет готов!`;

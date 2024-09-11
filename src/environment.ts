@@ -10,6 +10,8 @@ export const environmentSchema = z.object({
     TANPIN_LOGIN_URL: z.string(),
     TANPIN_AUTH_SYNC_URL: z.string(),
 
+    TANPIN_MINI_APP_URL: z.string(),
+
     TELEGRAM_BOT_TOKEN: z.string(),
     TELEGRAM_BOT_USERNAME: z.string(),
 
