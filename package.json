@@ -1,34 +1,27 @@
 {
-  "name": "tanpin-telegram-auth-bot",
-  "version": "0.0.1",
+  "name": "tanpin-telegram-auth",
+  "version": "1.0.0",
   "scripts": {
     "start": "ts-node src/main.ts",
-    "start:bot": "ts-node src/bot.ts",
     "build": "tsc && tsc-alias",
-    "deploy:api": "pm2 start dist/main.js --name TanpinTelegramAuthApi",
-    "deploy:bot": "pm2 start dist/bot.js --name TanpinTelegramAuthBot"
+    "deploy": "pm2 start dist/main.js --name TanpinTelegramAuth"
   },
   "dependencies": {
-    "@whatwg-node/server": "^0.9.23",
-    "base64url": "^3.0.1",
+    "@whatwg-node/server": "^0.9.49",
+    "dayjs": "^1.11.13",
     "dotenv": "^16.3.1",
     "elliptic": "^6.5.4",
     "http": "^0.0.1-security",
-    "itty-router": "^4.0.27",
+    "itty-router": "^5.0.18",
     "node-cron": "^3.0.3",
-    "node-telegram-bot-api": "^0.64.0",
-    "p-queue": "^6.6.2",
     "pg": "^8.11.3",
     "pg-format": "^1.0.4",
-    "viem": "^2.1.1",
-    "winston": "^3.11.0",
-    "winston-daily-rotate-file": "^4.7.1",
+    "viem": "^2.21.8",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/elliptic": "^6.4.18",
     "@types/node-cron": "^3.0.11",
-    "@types/node-telegram-bot-api": "^0.64.2",
     "@types/pg": "^8.10.9",
     "@types/pg-format": "^1.0.5",
     "@typescript-eslint/eslint-plugin": "^5.60.1",
@@ -37,7 +30,6 @@
     "ts-node": "^10.9.2",
     "tsc-alias": "^1.8.8",
     "tsconfig-paths": "^4.2.0",
-    "tsx": "^4.7.0",
     "typescript": "^5.3.3"
   }
 }

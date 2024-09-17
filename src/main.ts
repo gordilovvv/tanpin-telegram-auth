@@ -1,4 +1,4 @@
-import { Router, createCors, error, json } from 'itty-router';
+import { Router, cors, error, json } from 'itty-router';
 import { createServer } from 'http';
 import { createServerAdapter } from '@whatwg-node/server';
 import { authHandler } from 'handlers/auth';
@@ -8,36 +8,33 @@ import { startSessionsCleaner } from 'lib/session';
 import { logger } from 'utils/logger';
 import { env } from '@environment';
 
-const { preflight, corsify } = createCors({
-    origins: ['*'],
-    methods: ['HEAD', 'GET', 'POST']
+const { preflight, corsify } = cors({
+    origin: '*',
+    allowMethods: ['HEAD', 'GET', 'POST']
 });
 
-const router = Router();
+const router = Router({
+    before: [preflight],
+    finally: [corsify],
+    catch: error
+});
 
 router
     .all('*', preflight)
     .get('/', () => json({
-        message: 'Welcome to Tanpin APIs 👋'
+        message: 'Welcome to Tanpin APIs 💚'
     }));
 
-router.get('/auth', (request) => authHandler(request));
-router.get('/session/get', (request) => getSessionHandler(request));
-router.post('/session/set', (request) => setSessionHandler(request));
+router.get('/auth', authHandler);
+router.get('/session/get', getSessionHandler);
+router.post('/session/set', setSessionHandler);
 
 router.all('*', () => error(404));
 
-const ittyServer = createServerAdapter(
-    (request) => router
-        .handle(request)
-        .then(json)
-        .catch(error)
-        .then(corsify)
-);
+const ittyServer = createServerAdapter(router.fetch);
 const httpServer = createServer(ittyServer);
 
-startSessionsCleaner();
-
-logger.info(`Start app on port ${env.APP_PORT}`);
 httpServer.listen(env.APP_PORT);
 
+startSessionsCleaner();
+logger(`🟢 Telegram Auth started on port: ${env.APP_PORT}`);

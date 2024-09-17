@@ -3,13 +3,14 @@ import { z } from 'zod';
 import { env } from '@environment';
 import { pool } from 'db/pool';
 import { insertSession, selectSessionByPubKey } from 'db/session';
-import { User, insertUser, selectUserByTelegramId } from 'db/user';
+import { insertUser, selectUserByTelegramId } from 'db/user';
 import { badRequest, serverError, success } from './response';
-import { verifyTelegramLogin, TelegramLoginParams } from 'lib/bot';
+import { verifyTelegramAuth, TelegramAuthError } from 'lib/telegram';
 import { encrypt } from 'lib/aes';
-import { logError, logger } from 'utils/logger';
 import { generateWallet } from 'utils/wallet';
+import { parseSessionId, safeParseInt } from 'lib/format';
 import { getCurrentTimestampSeconds } from 'utils/timestamp';
+import { logError, logger } from 'utils/logger';
 
 // TODO: move to package
 import { getPublic } from 'packages/tanpin-tg-cipher/elliptic';
@@ -27,88 +28,82 @@ const validationSchema = z.object({
 });
 
 export const authHandler = async (request: IRequest) => {
-    const query = request.query as TelegramLoginParams & {
-        sessionId: string,
-        sessionLifetime: string
-    };
-    const validation = validationSchema.safeParse(query);
-
+    const validation = validationSchema.safeParse(request.query);
     if (!validation.success) {
         return badRequest('Data are missing in the request!');
     }
 
-    const { sessionId, sessionLifetime, ...parsedQuery } = validation.data;
+    const { sessionId: rawSessionId, sessionLifetime: rawSessionLifetime, ...parsedQuery } = validation.data;
+    const sessionId = parseSessionId(rawSessionId);
+    if (!sessionId) {
+        return badRequest('Invalid session id');
+    }
 
-    if (parseInt(sessionLifetime) <= 0) {
+    const sessionLifetime = safeParseInt(rawSessionLifetime);
+    if (!sessionLifetime || sessionLifetime < 0) {
         return badRequest('Session lifetime is zero or smaller!');
     }
 
-    logger.http('Auth request', parsedQuery);
-
+    logger(`[auth] request: ${JSON.stringify(parsedQuery)}`);
     const client = await pool.connect();
 
     try {
         await client.query('BEGIN');
 
-        const telegramUser = verifyTelegramLogin(parsedQuery);
-        let localUser = await selectUserByTelegramId(client, telegramUser.userId) as User;
-
-        // If user doesn't exist - insert to db and create wallet
-        if (!localUser) {
-            logger.info(`Create new wallet for user: ${parsedQuery.first_name} ${parsedQuery.last_name}`);
-
+        const telegramUser = verifyTelegramAuth(parsedQuery);
+        const user = await selectUserByTelegramId(client, telegramUser.id);
+        if (!user) {
             const wallet = generateWallet();
             const encryptedPrivateKey = encrypt(wallet.privateKey, {
-                tgId: telegramUser.userId,
+                tgId: telegramUser.id,
                 secret: env.ENCRYPTION_SECRET,
                 salt: wallet.privateKeySalt
             });
 
-            const user: User = {
-                tgUserId: telegramUser.userId,
+            await insertUser(client, {
+                tgUserId: telegramUser.id,
                 tgUsername: telegramUser.username,
                 address: wallet.address,
                 privateKey: encryptedPrivateKey.encryptedData,
                 privateKeyIv: encryptedPrivateKey.iv,
                 privateKeySalt: wallet.privateKeySalt
-            };
+            });
 
-            await insertUser(client, user);
-
-            localUser = await selectUserByTelegramId(client, telegramUser.userId) as User;
+            logger(`[auth] create new wallet for user: ${parsedQuery.first_name} ${parsedQuery.last_name}`);
         }
 
         const pubKey = getPublic(Buffer.from(sessionId, 'hex')).toString('hex');
         const existedSession = await selectSessionByPubKey(client, pubKey);
 
         if (existedSession) {
-            return badRequest('Current session existed!');
+            return badRequest('Session existed!');
         }
 
         // Save session privKey
         const currentTimestamp = getCurrentTimestampSeconds();
-        const expiredTimestamp = currentTimestamp + parseInt(sessionLifetime);
+        const expiredTimestamp = currentTimestamp + sessionLifetime;
 
         await insertSession(client, {
-            userId: localUser.tgUserId,
+            userId: telegramUser.id,
             sessionPubKey: pubKey,
             sessionPrivKey: sessionId,
-            sessionLifeTime: parseInt(sessionLifetime),
+            sessionLifeTime: sessionLifetime,
             sessionCreationTimestamp: currentTimestamp,
             sessionExpiredTimestamp: expiredTimestamp
         });
 
-        logger.verbose(`Create new session for ${parsedQuery.first_name} ${parsedQuery.last_name}, pubKey: ${pubKey}`);
-
+        logger(`[auth] create new session for ${parsedQuery.first_name} ${parsedQuery.last_name}, pubKey: ${pubKey}`);
         await client.query('COMMIT');
 
         return success({ success: true });
     } catch (error) {
         await client.query('ROLLBACK');
+        if (error instanceof TelegramAuthError) {
+            return badRequest(error.message);
+        }
 
         logError(error);
-
-        return serverError('Bad auth!');
+        return serverError('Failed to auth telegram');
     } finally {
         client.release();
     }

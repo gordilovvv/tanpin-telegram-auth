@@ -5,47 +5,37 @@ import { selectUserBySessionPubKey } from 'db/user';
 import { deleteSessionByPubKey, selectSessionByPubKey } from 'db/session';
 import { badRequest, serverError, success } from './response';
 import { decrypt } from 'lib/aes';
-import { isHex } from 'viem';
+import { parsePubKey } from 'lib/format';
 import { getCurrentTimestampSeconds } from 'utils/timestamp';
-import { logError, logger } from 'utils/logger';
+import { logError } from 'utils/logger';
 
 import { encryptData } from 'packages/tanpin-tg-cipher/cipher';
 
 export const getSessionHandler = async (request: IRequest) => {
-    const query = request.query as {
-        pubKey: string
-    };
-
-    if (!query.pubKey || !isHex(`0x${query.pubKey}`)) {
+    const pubKey = parsePubKey(request.query.pubKey as string);
+    if (!pubKey) {
         return badRequest('pubKey bad or empty!');
     }
-
-    logger.http(`Request session with pubKey ${query.pubKey}`);
 
     const client = await pool.connect();
 
     try {
         await client.query('BEGIN');
 
-        const session = await selectSessionByPubKey(client, query.pubKey);
-
+        const session = await selectSessionByPubKey(client, pubKey);
         if (!session) {
-            return badRequest('Session unknown!');
+            return badRequest('Session invalid!');
         }
 
         const currentTimestamp = getCurrentTimestampSeconds();
-
         if (session.sessionExpiredTimestamp <= currentTimestamp) {
             await deleteSessionByPubKey(client, session.sessionPubKey);
-
             return badRequest('Session expired!');
         }
 
         const user = await selectUserBySessionPubKey(client, session.sessionPubKey);
-
         if (!user) {
             await deleteSessionByPubKey(client, session.sessionPubKey);
-
             return badRequest('Session unknown!');
         }
 
@@ -61,13 +51,10 @@ export const getSessionHandler = async (request: IRequest) => {
         });
 
         await client.query('COMMIT');
-
         return success({ str: encrypted });
     } catch (error) {
         await client.query('ROLLBACK');
-
         logError(error);
-
         return serverError('Something failed!');
     } finally {
         client.release();

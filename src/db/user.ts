@@ -1,11 +1,10 @@
 import { PoolClient } from 'pg';
 import format from 'pg-format';
-import { Address } from 'viem';
 
 export type User = {
     tgUserId: string,
     tgUsername?: string,
-    address: Address,
+    address: `0x${string}`,
     privateKey: string,
     privateKeyIv: string,
     privateKeySalt: string
@@ -37,7 +36,7 @@ export const fromRowStorage = (userStorage: UserStorage) => {
     const user: User = {
         tgUserId: userStorage.tg_user_id,
         tgUsername: userStorage.tg_username ?? undefined,
-        address: userStorage.address as Address,
+        address: userStorage.address as `0x${string}`,
         privateKey: userStorage.private_key,
         privateKeyIv: userStorage.private_key_iv,
         privateKeySalt: userStorage.private_key_salt
@@ -92,4 +91,16 @@ export const insertUser = async (client: PoolClient, user: User) => {
         userStorage.private_key_salt
     ), []);
     /* eslint-enable @typescript-eslint/indent */
+};
+
+export const updateUsername = async (client: PoolClient, tgUserId: string, tgUsername: string | null) => {
+    await client.query(format(
+        `
+        UPDATE users
+        SET tg_username = %L
+        WHERE tg_user_id = %L;
+        `,
+        tgUsername,
+        tgUserId
+    ), []);
 };

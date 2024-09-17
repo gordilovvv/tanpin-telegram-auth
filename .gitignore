@@ -7,3 +7,4 @@ dist
 .env.development
 logs
 errors
+package-lock.json

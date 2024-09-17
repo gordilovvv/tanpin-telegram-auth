@@ -1,3 +1,5 @@
+import dayjs from 'dayjs';
+
 export const getCurrentTimestampSeconds = () => {
-    return Math.floor(Date.now() / 1000);
+    return dayjs().unix();
 };

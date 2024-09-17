@@ -1,21 +1,17 @@
 import { IRequest } from 'itty-router';
+import { parseJson } from './request';
+import { badRequest, serverError, success } from './response';
 import { z } from 'zod';
 import { pool } from 'db/pool';
 import { deleteSessionByPubKey, selectSessionByPubKey } from 'db/session';
-import { badRequest, serverError, success } from './response';
+import { parsePubKey } from 'lib/format';
 import { verifySignature } from 'utils/signature';
 import { logError, logger } from 'utils/logger';
 
 // TODO: move to package
 import { decryptData } from 'packages/tanpin-tg-cipher/cipher';
 
-type RequestBody = {
-    pubKey: string,
-    str: string,
-    signature: string
-}
-
-type SessionParams = {
+interface SessionParams {
     revoked?: boolean
 }
 
@@ -27,25 +23,26 @@ const validationSchema = z.object({
 
 /** Now only for revoke session! */
 export const setSessionHandler = async (request: IRequest) => {
-    const body = await request.json();
+    const body = await parseJson(request);
     const validation = validationSchema.safeParse(body);
-
     if (!validation.success) {
         return badRequest('Session data are missing!');
     }
 
-    const client = await pool.connect();
-    const { pubKey, str, signature } = body as RequestBody;
+    const pubKey = parsePubKey(validation.data.pubKey);
+    if (!pubKey) {
+        return badRequest('Invalid pub key!');
+    }
 
-    logger.http(`Request to set session params for pubKey ${pubKey}`);
+    const { str, signature } = validation.data;
+    const client = await pool.connect();
+
+    logger(`[session] request to set session params for pubKey ${pubKey}`);
 
     try {
-        await client.query('BEGIN');
-
         const session = await selectSessionByPubKey(client, pubKey);
-
         if (!session) {
-            return badRequest('Unknown session!');
+            return badRequest('Invalid session!');
         }
 
         await verifySignature(
@@ -60,25 +57,16 @@ export const setSessionHandler = async (request: IRequest) => {
         );
 
         if (error) {
-            throw new Error('Encrypt data was failed!');
-        }
-
-        // Revoke session
-        if (revoked) {
-            logger.info(`Delete session ${session.sessionPubKey}`);
-
+            return badRequest('Bad session!');
+        } else if (revoked) {
+            logger(`[session] delete session ${session.sessionPubKey}`);
             await deleteSessionByPubKey(client, session.sessionPubKey);
         }
 
-        await client.query('COMMIT');
-
         return success({ success: true });
     } catch (error) {
-        await client.query('ROLLBACK');
-
         logError(error);
-
-        return serverError('Bad session!');
+        return serverError('Failed to set session');
     } finally {
         client.release();
     }

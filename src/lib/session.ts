@@ -5,19 +5,18 @@ import { getCurrentTimestampSeconds } from 'utils/timestamp';
 import { logger } from 'utils/logger';
 
 const cleanSessions = async () => {
-    logger.verbose('Sessions Cleaner have been started at 00:00!');
+    logger('[session] cleaner have been started at 00:00!');
 
     const client = await pool.connect();
 
     try {
         const currentTimestamp = getCurrentTimestampSeconds();
         const expiredSessions = await selectExpiredSessions(client, currentTimestamp);
-
         if (!expiredSessions.length) {
             return;
         }
 
-        logger.info(`Sessions Cleaner found ${expiredSessions.length} expired sessions!`);
+        logger(`[session] sessions Cleaner found ${expiredSessions.length} expired sessions!`);
 
         await client.query('BEGIN');
 
@@ -35,6 +34,5 @@ const cleanSessions = async () => {
 
 export const startSessionsCleaner = () => {
     const everyDayAtMidnight = '0 0 * * *';
-
     cron.schedule(everyDayAtMidnight, cleanSessions);
 };
