@@ -36,11 +36,12 @@ export const verifyTelegramAuth = (rawAuth: TelegramAuth) => {
     const calculatedHash = hashBuffer.toString('hex');
     const isValidAuthDate = verifyAuthDate(rawAuth.auth_date, authLifetime);
 
-    if (!isValidAuthDate) {
-        throw new TelegramAuthError('Auth expired');
-    }
     if (calculatedHash !== hash) {
         throw new TelegramAuthError('Invalid auth');
+    }
+
+    if (!isValidAuthDate) {
+        throw new TelegramAuthError('Auth expired');
     }
 
     return {
