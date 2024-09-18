@@ -10,7 +10,7 @@
     "@whatwg-node/server": "^0.9.49",
     "dayjs": "^1.11.13",
     "dotenv": "^16.3.1",
-    "elliptic": "^6.5.4",
+    "elliptic": "^6.5.7",
     "http": "^0.0.1-security",
     "itty-router": "^5.0.18",
     "node-cron": "^3.0.3",
