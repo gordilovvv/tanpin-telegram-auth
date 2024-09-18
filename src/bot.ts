@@ -39,6 +39,7 @@ export const runBot = () => {
                     const tanpinHash = startParam;
                     return bot.sendMessage(chatId, authMessage(msg.from?.username, msg.from?.first_name), {
                         parse_mode: 'Markdown',
+                        disable_web_page_preview: false,
                         reply_markup: {
                             inline_keyboard: [
                                 [
@@ -47,7 +48,8 @@ export const runBot = () => {
                                         login_url: {
                                             url: telegramLoginUrl(env.TANPIN_AUTH_SYNC_URL, tanpinHash),
                                             bot_username: env.TELEGRAM_BOT_USERNAME,
-                                            forward_text: 'Недоступно 🐾'
+                                            forward_text: 'Чужой котик 🐾',
+                                            request_write_access: true
                                         }
                                     }
                                 ]
@@ -67,7 +69,7 @@ export const runBot = () => {
                                     login_url: {
                                         url: telegramLoginUrl(env.TANPIN_LOGIN_URL),
                                         bot_username: env.TELEGRAM_BOT_USERNAME,
-                                        forward_text: 'Что такое Tanpin ? 💚🎉',
+                                        forward_text: 'Что такое Tanpin ? 💚',
                                         request_write_access: true
                                     }
                                 },
