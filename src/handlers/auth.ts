@@ -44,7 +44,7 @@ export const authHandler = async (request: IRequest) => {
         return badRequest('Session lifetime is zero or smaller!');
     }
 
-    logger(`[auth] request: ${JSON.stringify(parsedQuery)}`);
+    logger(`[auth] request: ${JSON.stringify({ telegram_id: parsedQuery.id, username: parsedQuery.username })}`);
     const client = await pool.connect();
 
     try {
@@ -69,7 +69,7 @@ export const authHandler = async (request: IRequest) => {
                 privateKeySalt: wallet.privateKeySalt
             });
 
-            logger(`[auth] create new wallet for user: ${parsedQuery.first_name} ${parsedQuery.last_name}`);
+            logger(`[auth] create new wallet for user: ${JSON.stringify({ telegram_id: parsedQuery.id, username: parsedQuery.username })}`);
         }
 
         const pubKey = getPublic(Buffer.from(sessionId, 'hex')).toString('hex');
@@ -92,7 +92,7 @@ export const authHandler = async (request: IRequest) => {
             sessionExpiredTimestamp: expiredTimestamp
         });
 
-        logger(`[auth] create new session for ${parsedQuery.first_name} ${parsedQuery.last_name}, pubKey: ${pubKey}`);
+        logger(`[auth] create new session for user: ${JSON.stringify({ telegram_id: parsedQuery.id, username: parsedQuery.username })}, pubKey: ${pubKey}`);
         await client.query('COMMIT');
 
         return success({ success: true });
