@@ -29,72 +29,76 @@ export const runBot = () => {
     ]);
 
     // Обработка команды start
-    bot.onText(/\/start ?(.*)?/, (msg, match) => {
-        const chatId = msg.chat.id;
-        const startParam = match?.[1];
+    bot.onText(/\/start ?(.*)?/, async (msg, match) => {
+        try {
+            const chatId = msg.chat.id;
+            const startParam = match?.[1];
 
-        queue.add(() => {
-            return pRetry(async () => {
-                if (startParam?.length === 64) {
-                    const tanpinHash = startParam;
-                    return bot.sendMessage(chatId, authMessage(msg.from?.username, msg.from?.first_name), {
+            await queue.add(() => {
+                return pRetry(async () => {
+                    if (startParam?.length === 64) {
+                        const tanpinHash = startParam;
+                        return bot.sendMessage(chatId, authMessage(msg.from?.username, msg.from?.first_name), {
+                            parse_mode: 'Markdown',
+                            disable_web_page_preview: false,
+                            reply_markup: {
+                                inline_keyboard: [
+                                    [
+                                        {
+                                            text: '✈️ Войти с Telegram',
+                                            login_url: {
+                                                url: telegramLoginUrl(env.TANPIN_AUTH_SYNC_URL, tanpinHash),
+                                                bot_username: env.TELEGRAM_BOT_USERNAME,
+                                                request_write_access: true
+                                            }
+                                        }
+                                    ]
+                                ]
+                            }
+                        });
+                    }
+
+                    return bot.sendPhoto(chatId, startImage.data, {
+                        caption: startMessage(msg.from?.username, msg.from?.first_name),
                         parse_mode: 'Markdown',
-                        disable_web_page_preview: false,
                         reply_markup: {
                             inline_keyboard: [
                                 [
                                     {
-                                        text: '✈️ Войти с Telegram',
+                                        text: '🚀 Войти на Tanpin',
                                         login_url: {
-                                            url: telegramLoginUrl(env.TANPIN_AUTH_SYNC_URL, tanpinHash),
+                                            url: telegramLoginUrl(env.TANPIN_LOGIN_URL),
                                             bot_username: env.TELEGRAM_BOT_USERNAME,
-                                            forward_text: 'Чужой котик 🐾',
+                                            forward_text: 'Что такое Tanpin ? 💚',
                                             request_write_access: true
                                         }
+                                    },
+                                ],
+                                [
+                                    {
+                                        text: '🎟️ Что-то новое',
+                                        web_app: {
+                                            url: env.TANPIN_MINI_APP_URL
+                                        }
+                                    },
+                                    {
+                                        text: '💚 Канал',
+                                        url: 'https://t.me/tanpin_ru'
                                     }
                                 ]
                             ]
                         }
-                    });
-                }
-
-                return bot.sendPhoto(chatId, startImage.data, {
-                    caption: startMessage(msg.from?.username, msg.from?.first_name),
-                    parse_mode: 'Markdown',
-                    reply_markup: {
-                        inline_keyboard: [
-                            [
-                                {
-                                    text: '🚀 Войти на Tanpin',
-                                    login_url: {
-                                        url: telegramLoginUrl(env.TANPIN_LOGIN_URL),
-                                        bot_username: env.TELEGRAM_BOT_USERNAME,
-                                        forward_text: 'Что такое Tanpin ? 💚',
-                                        request_write_access: true
-                                    }
-                                },
-                            ],
-                            [
-                                {
-                                    text: '🐱 Играть',
-                                    web_app: {
-                                        url: env.TANPIN_MINI_APP_URL
-                                    }
-                                },
-                                {
-                                    text: '💚 Канал',
-                                    url: 'https://t.me/tanpin_ru'
-                                }
-                            ]
-                        ]
-                    }
-                }, startImage.options);
-            }, {
-                retries: 2,
-                minTimeout: 100,
-                maxTimeout: 500
+                    }, startImage.options);
+                }, {
+                    retries: 1,
+                    minTimeout: 1_000,
+                    onFailedAttempt: (err: any) => logger(`🔴 bot error: ${err.message}`)
+                });
             });
-        });
+        } catch (err) {
+            logger(`🔴 bot error: ${(err as any).message}`);
+            console.error(err);
+        }
     });
 };
 

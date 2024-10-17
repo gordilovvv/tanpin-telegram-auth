@@ -14,9 +14,7 @@ export const startMessage = (username?: string, firstName?: string) => `Прив
 
 Встречай первую коллекцию и завладей эксклюзивными предметами от Black Russia 🐻
 
-Играй и прокачивай своего котика, фарми поинты и соревнуйся с другими игроками.
-
-Играешь один ? Заходи в канал, находи новых друзей, и играйте и зарабатывайте вместе!`;
+Играешь один? Заходи в канал, находи новых друзей, и играйте и зарабатывайте вместе!`;
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 export const authMessage = (username?: string, firstName?: string) => `Подключить Telegram 🔗
