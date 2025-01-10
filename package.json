@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "build": "tsc && tsc-alias",
-    "deploy": "pm2 start dist/index.js --name TanpinTelegramBot"
+    "build": "tsc && tsc-alias"
   },
   "dependencies": {
     "@whatwg-node/server": "^0.9.49",
