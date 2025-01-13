@@ -7,5 +7,5 @@ services:
     container_name: tanpin-telegram-bot
     env_file:
       - .env
-    command: ["node", "src/index.js"]
-    restart: always
+    command: ["node", "dist/index.js"]
+    restart: unless-stopped

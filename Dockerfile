@@ -9,7 +9,5 @@ RUN pnpm install
 COPY . .
 RUN pnpm build
 
-CMD ["node", "src/index.js"]
-
 RUN adduser -D appuser
 USER appuser
