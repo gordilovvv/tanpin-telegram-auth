@@ -4,6 +4,7 @@ import { Update } from 'node-telegram-bot-api';
 import { createServer } from 'http';
 import { bot } from './bot';
 import { env } from 'environment';
+import { logger } from 'lib/logger';
 
 export const router = Router({
     catch: error
@@ -12,15 +13,19 @@ export const router = Router({
 router.post(`/bot${env.TELEGRAM_WEB_HOOK_SECRET}`, async (request: IRequest) => {
     try {
         const body = await request.json() as Request;
+        const clientIp = request.headers.get('CF-Connecting-IP') ||
+            request.headers.get('X-Forwarded-For') ||
+            request.headers.get('Remote-Addr') ||
+            'unknown_ip';
 
-        if ('update_id' in body) {
-            const update = body as Update;
-            bot.processUpdate(update);
-        } else {
-            console.warn('invalid request', body);
-            return error(400, { error: 'invalid' });
+        logger(`[bot] request to bot from ${clientIp}`);
+        if (!('update_at' in body)) {
+            console.error('invalid request', body);
+            return error(400);
         }
 
+        const update = body as never as Update;
+        bot.processUpdate(update);
         return json({ ok: true }, { status: 200 });
     } catch (err) {
         console.error(err);

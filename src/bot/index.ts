@@ -49,7 +49,7 @@ bot.onText(/^\/start(?:\s(.*))?$/, async (msg, match) => {
 
         await sendPhotoWithRetry(chatId, startImage.file, {
             caption: MESSAGE.START(msg.from?.username),
-            parse_mode: 'Markdown',
+            parse_mode: 'HTML',
             reply_markup: {
                 inline_keyboard: [
                     [
@@ -57,7 +57,6 @@ bot.onText(/^\/start(?:\s(.*))?$/, async (msg, match) => {
                             text: 'Маркет 💸',
                             login_url: {
                                 url: telegramLoginUrl(env.TANPIN_LOGIN_URL),
-                                forward_text: 'Что такое Tanpin ? 💚',
                                 request_write_access: true
                             }
                         },
@@ -88,24 +87,59 @@ const guidePhoto = {
     file: fs.readFileSync('assets/guide.png')
 } as const;
 
-bot.onText(/\/help/, (msg) => {
+bot.onText(/\/help/, async (msg) => {
     try {
-        return sendPhotoWithRetry(msg.chat.id, guidePhoto.file, {
+        await sendPhotoWithRetry(msg.chat.id, guidePhoto.file, {
+            reply_markup: {
+                inline_keyboard: [
+                    [
+                        {
+                            text: 'Маркет 💸',
+                            login_url: {
+                                url: telegramLoginUrl(env.TANPIN_LOGIN_URL),
+                                request_write_access: true
+                            }
+                        },
+                        {
+                            text: 'Билеты 🎟️',
+                            web_app: {
+                                url: env.TANPIN_MINI_APP_URL
+                            }
+                        },
+                    ],
+                    [
+                        {
+                            text: 'Полный гайд 🎓',
+                            url: 'https://zest-caraway-315.notion.site/Tanpin-1560fa60092280cfa697e50cef4c44c8?pvs=74'
+                        },
+                    ]
+                ]
+            },
             caption: MESSAGE.GUIDE,
             parse_mode: 'Markdown'
         }, { filename: guidePhoto.name, contentType: guidePhoto.type });
     } catch (error: any) {
-        console.error('[bot] failed to send /start message', error.message);
+        console.error('[bot] failed to send /help message', error.message);
     }
 });
 
-bot.onText(/\/dice/, (msg) => {
-    return sendMessageWithRetry(msg.chat.id, 'Хочешь больше билетов для лоттерей? И другие игроки хотят тоже 🥷\n\nЗаходи в кости, побеждай и выигрывай билеты у других игроков.\n\n@tanpin_dice_bot', {
-        parse_mode: 'Markdown'
-    });
+bot.onText(/\/dice/, async (msg) => {
+    try {
+        await sendMessageWithRetry(msg.chat.id, MESSAGE.DICE, {
+            parse_mode: 'HTML'
+        });
+    } catch (error: any) {
+        console.error('[bot] failed to send /dice message', error.message);
+    }
 });
 
 
-bot.onText(/\/support/, (msg) => {
-    return sendMessageWithRetry(msg.chat.id, 'Появилась проблема? Есть идея или вопрос?\n\n@tanpin_market_support');
+bot.onText(/\/support/, async (msg) => {
+    try {
+        await sendMessageWithRetry(msg.chat.id, MESSAGE.SUPPORT, {
+            parse_mode: 'HTML'
+        });
+    } catch (error: any) {
+        console.error('[bot] failed to send /support message', error.message);
+    }
 });
