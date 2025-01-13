@@ -19,7 +19,7 @@ router.post(`/bot${env.TELEGRAM_WEB_HOOK_SECRET}`, async (request: IRequest) => 
             'unknown_ip';
 
         logger(`[bot] request to bot from ${clientIp}`);
-        if (!('update_at' in body)) {
+        if (!('update_id' in body)) {
             console.error('invalid request', body);
             return error(400);
         }
