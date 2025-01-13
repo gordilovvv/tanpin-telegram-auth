@@ -1,18 +1,11 @@
 version: '3.4'
 
 services:
-  auth_bot_memcached:
-    image: memcached:1.6.24
-    container_name: auth_bot_memcached
+   bot:
+    build:
+      context: .
+    container_name: tanpin-telegram-bot
+    env_file:
+      - .env
+    command: ["node", "src/index.js"]
     restart: always
-    ports:
-      - '${MEMCACHED_PORT}:11211'
-    environment:
-      MEMCACHED_MEMORY: ${MEMCACHED_MEMORY}
-    volumes:
-      - memcached_data:/data
-
-volumes:
-  memcached_data:
-
-# закрой порт на авторизацию
