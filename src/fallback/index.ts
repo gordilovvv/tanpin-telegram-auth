@@ -5,7 +5,7 @@ import { sendPhotoWithRetry } from './utils';
 
 const message = '*Офицальный Tanpin бот переехал 🗺️*\n\nМаркетплейс и коллекция Black Russia уже там.\n\nХочешь выиграть призы от Tanpin и Black Russia? Розыгрыши ждут тебя!\n\nНажимай на кнопку ниже и переходи в нового бота👇';
 
-const mapImage = {
+const image = {
     name: 'new_bot.png',
     type: 'image/png',
     file: fs.readFileSync('assets/new_bot.png')
@@ -13,7 +13,7 @@ const mapImage = {
 
 const handler = async (msg: TelegramBot.Message, bot: TelegramBot) => {
     const chatId = msg.chat.id;
-    await sendPhotoWithRetry(bot, chatId, mapImage.file, {
+    await sendPhotoWithRetry(bot, chatId, image.file, {
         caption: message,
         parse_mode: 'Markdown',
         reply_markup: {
@@ -27,7 +27,7 @@ const handler = async (msg: TelegramBot.Message, bot: TelegramBot) => {
                 ]
             ]
         }
-    });
+    }, { filename: image.name, contentType: image.type });
 };
 
 botPlay.setMyCommands([{ command: 'start', description: 'Начать' }]);
