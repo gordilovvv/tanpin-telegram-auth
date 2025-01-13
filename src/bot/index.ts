@@ -22,69 +22,87 @@ const startImage = {
 } as const;
 
 bot.onText(/^\/start(?:\s(.*))?$/, async (msg, match) => {
-    const chatId = msg.chat.id;
-    const startParam = match?.[1];
+    try {
+        const chatId = msg.chat.id;
+        const startParam = match?.[1];
 
-    if (startParam?.length === 64) {
-        const tanpinHash = startParam;
-        await sendMessageWithRetry(chatId, MESSAGE.START_AUTH, {
-            disable_web_page_preview: false,
+        if (startParam?.length === 64) {
+            const tanpinHash = startParam;
+            await sendMessageWithRetry(chatId, MESSAGE.START_AUTH, {
+                disable_web_page_preview: false,
+                reply_markup: {
+                    inline_keyboard: [
+                        [
+                            {
+                                text: '✈️ Войти с Telegram',
+                                login_url: {
+                                    url: telegramLoginUrl(env.TANPIN_AUTH_SYNC_URL, tanpinHash),
+                                    request_write_access: true
+                                }
+                            }
+                        ]
+                    ]
+                }
+            });
+            return;
+        }
+
+        await sendPhotoWithRetry(chatId, startImage.file, {
+            caption: MESSAGE.START(msg.from?.username),
+            parse_mode: 'Markdown',
             reply_markup: {
                 inline_keyboard: [
                     [
                         {
-                            text: '✈️ Войти с Telegram',
+                            text: 'Маркет 💸',
                             login_url: {
-                                url: telegramLoginUrl(env.TANPIN_AUTH_SYNC_URL, tanpinHash),
+                                url: telegramLoginUrl(env.TANPIN_LOGIN_URL),
+                                forward_text: 'Что такое Tanpin ? 💚',
                                 request_write_access: true
                             }
+                        },
+                        {
+                            text: 'Канал 💬',
+                            url: 'https://t.me/tanpin_ru'
                         }
+                    ],
+                    [
+                        {
+                            text: 'Розыгрыши 🎟️',
+                            web_app: {
+                                url: env.TANPIN_MINI_APP_URL
+                            }
+                        },
                     ]
                 ]
             }
-        });
-        return;
+        }, { filename: startImage.name, contentType: startImage.type });
+    } catch (error: any) {
+        console.error('[bot] failed to send /start message', error.message);
     }
-
-    await sendPhotoWithRetry(chatId, startImage.file, {
-        caption: MESSAGE.START,
-        parse_mode: 'Markdown',
-        reply_markup: {
-            inline_keyboard: [
-                [
-                    {
-                        text: 'Сообщество 💸',
-                        url: 'https://t.me/tanpin_ru'
-                        // login_url: {
-                        //     url: telegramLoginUrl(env.TANPIN_LOGIN_URL),
-                        //     forward_text: 'Что такое Tanpin ? 💚',
-                        //     request_write_access: true
-                        // }
-                    },
-                    {
-                        text: 'Tanpin Новости 💬',
-                        url: 'https://t.me/tanpin_ru'
-                    }
-                ],
-                [
-                    {
-                        text: 'Розыгрыши 🎟️',
-                        web_app: {
-                            url: env.TANPIN_MINI_APP_URL
-                        }
-                    },
-                ]
-            ]
-        }
-    }, { filename: startImage.name, contentType: startImage.type });
 });
 
+const guidePhoto = {
+    name: 'guide.png',
+    type: 'image/png',
+    file: fs.readFileSync('assets/guide.png')
+} as const;
+
 bot.onText(/\/help/, (msg) => {
-    return sendMessageWithRetry(msg.chat.id, 'Мини гайд');
+    try {
+        return sendPhotoWithRetry(msg.chat.id, guidePhoto.file, {
+            caption: MESSAGE.GUIDE,
+            parse_mode: 'Markdown'
+        }, { filename: guidePhoto.name, contentType: guidePhoto.type });
+    } catch (error: any) {
+        console.error('[bot] failed to send /start message', error.message);
+    }
 });
 
 bot.onText(/\/dice/, (msg) => {
-    return sendMessageWithRetry(msg.chat.id, 'Хочешь больше билетов для лоттерей? И другие игроки хотят тоже 🥷\n\nЗаходи в кости, побеждай и выигрывай билеты у других игроков.\n\n@tanpin_dice_bot');
+    return sendMessageWithRetry(msg.chat.id, 'Хочешь больше билетов для лоттерей? И другие игроки хотят тоже 🥷\n\nЗаходи в кости, побеждай и выигрывай билеты у других игроков.\n\n@tanpin_dice_bot', {
+        parse_mode: 'Markdown'
+    });
 });
 
 

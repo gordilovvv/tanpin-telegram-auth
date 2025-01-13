@@ -1,8 +1,7 @@
 import TelegramBot from 'node-telegram-bot-api';
-import pRetry from 'p-retry';
 import PQueue from 'p-queue';
 import { bot } from '../bot/bot';
-import { sleep } from 'lib/promise';
+import { withRetry } from './retry';
 
 export const telegramLoginUrl = (url: string, tanpinHash?: string) => {
     const parsedUrl = new URL(url);
@@ -10,34 +9,6 @@ export const telegramLoginUrl = (url: string, tanpinHash?: string) => {
         parsedUrl.searchParams.append('tanpin_hash', tanpinHash);
     }
     return parsedUrl.toString();
-};
-
-const is429Error = (error: any) => {
-    return (
-        error?.response?.statusCode === 429 ||
-        error?.code === 'ETELEGRAM' && error?.response?.body?.error_code === 429
-    );
-};
-
-const getRetryAfter = (error: any): number | undefined => {
-    return error?.response?.body?.parameters?.retry_after;
-};
-
-export const withRetry = <T>(fn: () => Promise<T>): Promise<T> => {
-    return pRetry(fn, {
-        retries: 1,
-        onFailedAttempt: async (error) => {
-            if (is429Error(error)) {
-                const retryAfter = getRetryAfter(error);
-                if (retryAfter && retryAfter > 0 && retryAfter < 360) {
-                    console.warn(`Got 429 Too Many Requests. Wait ${retryAfter} seconds...`);
-                    await sleep(retryAfter * 1_000);
-                }
-            }
-
-            throw error;
-        },
-    });
 };
 
 export const queue = new PQueue({
