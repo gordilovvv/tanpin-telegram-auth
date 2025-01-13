@@ -29,10 +29,18 @@ const handler = async (request: IRequest, bot: TelegramBot, botName: string) => 
     }
 };
 
+if (env.TELEGRAM_PLAY_BOT_WEBHOOK === 'true') {
+    botPlay.setWebHook(`${env.APP_URL}/bot${env.TELEGRAM_PLAY_BOT_WEBHOOK_SECRET}`);
+}
+
 router.post(`/bot${env.TELEGRAM_PLAY_BOT_WEBHOOK_SECRET}`, async (request: IRequest) => {
     logger('[bot] play bot request');
     return handler(request, botPlay, 'PlayBot');
 });
+
+if (env.TELEGRAM_AUTH_BOT_WEBHOOK === 'true') {
+    botAuth.setWebHook(`${env.APP_URL}/bot${env.TELEGRAM_AUTH_BOT_WEBHOOK_SECRET}`);
+}
 
 router.post(`/bot${env.TELEGRAM_AUTH_BOT_WEBHOOK_SECRET}`, async (request: IRequest) => {
     logger('[bot] auth bot request');
