@@ -1,9 +1,12 @@
 {
-  "name": "telegram-auth-bot",
+  "name": "tanpin-telegram-bot",
   "version": "1.0.0",
   "scripts": {
     "start": "ts-node src/index.ts",
-    "build": "tsc && tsc-alias"
+    "build": "tsc && tsc-alias",
+    "broadcast:nft": "docker run --name tanpin-broadcast -d --env-file .env.scripts tanpin-bot node dist/broadcast/index.js nft",
+    "broadcast:play": "docker run --name tanpin-broadcast -d --env-file .env.scripts tanpin-bot node dist/broadcast/index.js play",
+    "broadcast:auth": "docker run --name tanpin-broadcast -d --env-file .env.scripts tanpin-bot node dist/broadcast/index.js auth"
   },
   "dependencies": {
     "@whatwg-node/server": "^0.9.49",
@@ -13,10 +16,15 @@
     "node-telegram-bot-api": "^0.66.0",
     "p-queue": "^6.6.2",
     "p-retry": "^4.6.2",
+    "pg": "^8.13.1",
+    "pg-format": "^1.0.4",
     "zod": "^3.22.4"
   },
   "devDependencies": {
+    "@types/node": "^22.10.5",
     "@types/node-telegram-bot-api": "^0.64.2",
+    "@types/pg": "^8.11.10",
+    "@types/pg-format": "^1.0.5",
     "@typescript-eslint/eslint-plugin": "^5.60.1",
     "@typescript-eslint/parser": "^5.60.1",
     "eslint": "^8.43.0",
