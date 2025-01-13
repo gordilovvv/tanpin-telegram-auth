@@ -34,9 +34,17 @@ botPlay.setMyCommands([{ command: 'start', description: 'Начать' }]);
 botAuth.setMyCommands([{ command: 'start', description: 'Начать' }]);
 
 botPlay.onText(/^\/start(?:\s(.*))?$/, async (msg) => {
-    return handler(msg, botPlay);
+    try {
+        await handler(msg, botPlay);
+    } catch (error: any) {
+        console.error('[fallback-play-bot] failed to send /start message', error.message);
+    }
 });
 
 botAuth.onText(/^\/start(?:\s(.*))?$/, async (msg) => {
-    return handler(msg, botAuth);
+    try {
+        await handler(msg, botAuth);
+    } catch (error: any) {
+        console.error('[fallback-auth-bot] failed to send /start message', error.message);
+    }
 });
