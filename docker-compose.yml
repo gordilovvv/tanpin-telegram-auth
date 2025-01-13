@@ -5,6 +5,8 @@ services:
     build:
       context: .
     container_name: tanpin-telegram-bot
+    ports:
+      - "8002:8002"
     env_file:
       - .env
     command: ["node", "dist/index.js"]
