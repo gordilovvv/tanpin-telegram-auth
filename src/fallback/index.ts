@@ -30,6 +30,9 @@ const handler = async (msg: TelegramBot.Message, bot: TelegramBot) => {
     });
 };
 
+botPlay.setMyCommands([{ command: 'start', description: 'Начать' }]);
+botAuth.setMyCommands([{ command: 'start', description: 'Начать' }]);
+
 botPlay.onText(/^\/start(?:\s(.*))?$/, async (msg) => {
     return handler(msg, botPlay);
 });
