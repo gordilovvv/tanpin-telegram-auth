@@ -117,7 +117,7 @@ async function main() {
 
     let offset = 0;
     const limit = 100;
-    const queue = new PQueue({ interval: 1_100, intervalCap: 10 });
+    const queue = new PQueue({ interval: 1_100, intervalCap: 20 });
 
     const token = bot === 'nft' ? process.env.NFT_BOT_TOKEN : bot === 'auth' ? process.env.AUTH_BOT_TOKEN : process.env.PLAY_BOT_TOKEN;
     const botApi = new TelegramBot(token!, { webHook: false, polling: false });

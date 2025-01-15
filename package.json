@@ -4,9 +4,9 @@
   "scripts": {
     "start": "ts-node src/index.ts",
     "build": "tsc && tsc-alias",
-    "broadcast:nft": "docker run --name tanpin-broadcast -d --env-file .env.scripts tanpin-bot node dist/broadcast/index.js nft",
-    "broadcast:play": "docker run --name tanpin-broadcast -d --env-file .env.scripts tanpin-bot node dist/broadcast/index.js play",
-    "broadcast:auth": "docker run --name tanpin-broadcast -d --env-file .env.scripts tanpin-bot node dist/broadcast/index.js auth"
+    "broadcast:nft": "docker run --name tanpin-broadcast-nft -d --env-file .env.scripts tanpin-bot node dist/broadcast/index.js nft",
+    "broadcast:play": "docker run --name tanpin-broadcast-play -d --env-file .env.scripts tanpin-bot node dist/broadcast/index.js play",
+    "broadcast:auth": "docker run --name tanpin-broadcast-auth -d --env-file .env.scripts tanpin-bot node dist/broadcast/index.js auth"
   },
   "dependencies": {
     "@whatwg-node/server": "^0.9.49",
