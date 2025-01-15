@@ -7,7 +7,7 @@ import { withRetry } from '../lib/retry';
 import path from 'path';
 import fs from 'fs';
 
-config({ path: path.resolve(__dirname, '../.env.scripts') });
+config({ path: path.resolve(__dirname, '../../.env.scripts') });
 
 type Bot = 'nft' | 'play' | 'auth';
 const BOTS: Bot[] = ['nft', 'play', 'auth'];
