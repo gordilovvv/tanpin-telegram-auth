@@ -8,7 +8,6 @@ import path from 'path';
 import fs from 'fs';
 
 config({ path: path.resolve(__dirname, '../.env.scripts') });
-console.log(process.env);
 
 type Bot = 'nft' | 'play' | 'auth';
 const BOTS: Bot[] = ['nft', 'play', 'auth'];
