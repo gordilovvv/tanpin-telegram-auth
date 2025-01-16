@@ -21,10 +21,22 @@ const MESSAGE: {
     photo: { file: fs.readFileSync('assets/season_2.png'), filename: 'season_2.png', contentType: 'image/png' },
     caption: '*Tanpin Сезон 2 уже идет 🎉*\n\nУчаствуй в ежедневных розыгрышах и получай крутые призы: Telegram Premium, Black Coins, Boost Glasses, Punker и многие другие.\n\nХочешь большего? Поборись за супер приз от Tanpin и Black Russia в финале.',
     options: {
+        // reply_markup: {
+        //     inline_keyboard: [
+        //         [
+        //             { text: 'Участвовать ❤️‍🔥', url: 'https://t.me/TanpinNftBot?start=' }
+        //         ]
+        //     ]
+        // }
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: 'Участвовать ❤️‍🔥', url: 'https://t.me/TanpinNftBot?start=' }
+                    {
+                        text: 'Розыгрыши 🎟️',
+                        web_app: {
+                            url: process.env.MINI_APP_URL!
+                        }
+                    },
                 ]
             ]
         }
