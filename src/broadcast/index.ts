@@ -3,6 +3,7 @@ import { config } from 'dotenv';
 import format from 'pg-format';
 import PQueue from 'p-queue';
 import TelegramBot from 'node-telegram-bot-api';
+import { safeParseInt } from 'lib/format';
 import { withRetry } from '../lib/retry';
 import path from 'path';
 import fs from 'fs';
@@ -31,13 +32,14 @@ const MESSAGE: {
 };
 
 function help() {
-    console.log('pnpm run process-broadcast {bot} {message} {image}');
+    console.log('pnpm run process-broadcast {bot} {offset?}');
 }
 
 async function main() {
     // argv[0]: ts-node
     // argv[1]: process-broadcast.ts
     // argv[2]: {bot}
+    // argv[3]: {offset}
     if (process.argv.length < 3) {
         console.error('Missing arguments');
         return help();
@@ -114,7 +116,7 @@ async function main() {
         }
     };
 
-    let offset = 0;
+    let offset = safeParseInt(process.argv[3]) || 0;
     const limit = 100;
     const queue = new PQueue({ interval: 1_100, intervalCap: 20 });
 
