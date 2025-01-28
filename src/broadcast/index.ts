@@ -31,6 +31,10 @@ const MESSAGE: {
                             url: 'https://app.tanpin.io'
                         }
                     },
+                    {
+                        text: 'Канал 💬',
+                        url: 'https://t.me/tanpin_ru'
+                    }
                 ]
             ]
         }
@@ -39,7 +43,8 @@ const MESSAGE: {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: 'Играть ❤️‍🔥', url: 'https://t.me/TanpinNftBot?start=' }
+                    { text: 'Играть ❤️‍🔥', url: 'https://t.me/TanpinNftBot?start=' },
+                    { text: 'Канал 💬', url: 'https://t.me/tanpin_ru' }
                 ]
             ]
         }
