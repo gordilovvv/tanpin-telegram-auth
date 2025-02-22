@@ -19,17 +19,18 @@ const MESSAGE: {
     options: TelegramBot.SendPhotoOptions,
     optionsFallback: TelegramBot.SendPhotoOptions
 } = {
-    photo: { file: fs.readFileSync('assets/broadcast_bot.png'), filename: 'broadcast_bot.png', contentType: 'image/png' },
-    caption: '*Не пропусти Tanpin Сезон 2  🎉*\n\nНовый сезон уже открыт! Более 100 игроков уже забрали свои призы.\n\nГотов играть? Тогда нажимай на кнопку.',
+    photo: { file: fs.readFileSync('assets/sea_battle_promo.png'), filename: 'sea_battle_promo.png', contentType: 'image/png' },
+    caption: '*Морской бой ждёт тебя* ⚓️\n\nНе упустите шанс стать капитаном своего флота! Составляйте стратегии, уничтожайте флот противника и докажите, кто здесь главный.',
     options: {
         reply_markup: {
             inline_keyboard: [
                 [
                     {
-                        text: 'Играть ❤️‍🔥',
-                        web_app: {
-                            url: 'https://app.tanpin.io'
-                        }
+                        text: 'Играть 💥',
+                        url: 'https://t.me/sea_battle_tanpin_bot?start='
+                        // web_app: {
+                        //     url: 'https://app.tanpin.io'
+                        // }
                     },
                     {
                         text: 'Канал 💬',
