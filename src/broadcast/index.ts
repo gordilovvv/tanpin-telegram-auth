@@ -44,8 +44,14 @@ const MESSAGE: {
         reply_markup: {
             inline_keyboard: [
                 [
-                    { text: 'Играть ❤️‍🔥', url: 'https://t.me/TanpinNftBot?start=' },
-                    { text: 'Канал 💬', url: 'https://t.me/tanpin_ru' }
+                    {
+                        text: 'Играть 💥',
+                        url: 'https://t.me/sea_battle_tanpin_bot?start='
+                    },
+                    {
+                        text: 'Канал 💬',
+                        url: 'https://t.me/tanpin_ru'
+                    }
                 ]
             ]
         }
