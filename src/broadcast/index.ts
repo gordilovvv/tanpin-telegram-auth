@@ -5,58 +5,14 @@ import PQueue from 'p-queue';
 import TelegramBot from 'node-telegram-bot-api';
 import { safeParseInt } from 'lib/format';
 import { withRetry } from '../lib/retry';
+import { MESSAGE, PROD_BROADCAST } from './config';
+import { sleep } from 'lib/promise';
 import path from 'path';
-import fs from 'fs';
 
 config({ path: path.resolve(__dirname, '../../.env.scripts') });
 
 type Bot = 'nft' | 'play' | 'auth';
 const BOTS: Bot[] = ['nft', 'play', 'auth'];
-
-const MESSAGE: {
-    photo: { file: Buffer, fileId?: string | undefined, filename: string, contentType: string },
-    caption: string,
-    options: TelegramBot.SendPhotoOptions,
-    optionsFallback: TelegramBot.SendPhotoOptions
-} = {
-    photo: { file: fs.readFileSync('assets/sea_battle_promo.png'), filename: 'sea_battle_promo.png', contentType: 'image/png' },
-    caption: '*Морской бой ждёт тебя* ⚓️\n\nНе упустите шанс стать капитаном своего флота! Составляйте стратегии, уничтожайте флот противника и докажите, кто здесь главный.',
-    options: {
-        reply_markup: {
-            inline_keyboard: [
-                [
-                    {
-                        text: 'Играть 💥',
-                        url: 'https://t.me/sea_battle_tanpin_bot?start='
-                        // web_app: {
-                        //     url: 'https://app.tanpin.io'
-                        // }
-                    },
-                    {
-                        text: 'Канал 💬',
-                        url: 'https://t.me/tanpin_ru'
-                    }
-                ]
-            ]
-        }
-    },
-    optionsFallback: {
-        reply_markup: {
-            inline_keyboard: [
-                [
-                    {
-                        text: 'Играть 💥',
-                        url: 'https://t.me/sea_battle_tanpin_bot?start='
-                    },
-                    {
-                        text: 'Канал 💬',
-                        url: 'https://t.me/tanpin_ru'
-                    }
-                ]
-            ]
-        }
-    }
-};
 
 function help() {
     console.log('pnpm run process-broadcast {bot} {offset?}');
@@ -151,12 +107,31 @@ async function main() {
     const botApi = new TelegramBot(token!, { webHook: false, polling: false });
     const messageOptions = bot === 'nft' ? MESSAGE.options : MESSAGE.optionsFallback;
 
+    console.log('[bot] sleep for 1 minute');
+    console.log(`[bot] will send message in ${bot}`, 'message', {
+        video: MESSAGE.video,
+        photo: MESSAGE.photo,
+        caption: MESSAGE.caption,
+        // @ts-ignore
+        buttons: messageOptions.reply_markup.inline_keyboard
+    });
+
+    if (PROD_BROADCAST) {
+        await sleep(60_000);
+    }
+
+    console.log('[bot] start broadcast');
     // eslint-disable-next-line no-constant-condition
     while (true) {
         console.log(`[broadcast] fetch users from ${offset} to ${offset + limit} > ${new Date().toISOString()}`);
-        const users = bot === 'auth'
-            ? await getTelegramAuthUsers(limit, offset)
-            : await getTelegramBotUsers(limit, offset);
+        let users: any;
+        if (PROD_BROADCAST) {
+            users = bot === 'auth'
+                ? await getTelegramAuthUsers(limit, offset)
+                : await getTelegramBotUsers(limit, offset);
+        } else {
+            users = offset === 0 ? [{ telegram_id: '434418227' }, { telegram_id: '1192553788' }] : [];
+        }
 
         if (users.length === 0) {
             console.log(`[broadcast] no users from ${offset} to ${offset + limit}`);
@@ -168,15 +143,40 @@ async function main() {
                 const hrstart = process.hrtime();
                 await queue.add(async () => {
                     return withRetry(async () => {
-                        const res = await botApi.sendPhoto(user.telegram_id, MESSAGE.photo.fileId || MESSAGE.photo.file, {
-                            caption: MESSAGE.caption,
-                            parse_mode: 'Markdown',
-                            ...messageOptions
-                        }, { filename: MESSAGE.photo.filename, contentType: MESSAGE.photo.contentType });
-
-                        if (!MESSAGE.photo.fileId) {
-                            const uploadedFileId = res.photo?.[res.photo.length - 1]?.file_id;
-                            MESSAGE.photo.fileId = uploadedFileId;
+                        // Code to send message
+                        let res;
+                        if (MESSAGE.video && (MESSAGE.video.fileId || MESSAGE.video.url)) {
+                            // Use the fileId if available, otherwise use the URL for the video
+                            res = await botApi.sendVideo(
+                                user.telegram_id,
+                                MESSAGE.video.fileId || MESSAGE.video.url,
+                                {
+                                    caption: MESSAGE.caption,
+                                    parse_mode: 'Markdown',
+                                    ...messageOptions
+                                }
+                            );
+                            // If we used the URL, save the returned file_id for future use
+                            if (!MESSAGE.video.fileId && res.video) {
+                                MESSAGE.video.fileId = res.video.file_id;
+                            }
+                        } else if (MESSAGE.photo && (MESSAGE.photo.fileId || MESSAGE.photo.file)) {
+                            res = await botApi.sendPhoto(
+                                user.telegram_id,
+                                MESSAGE.photo.fileId || MESSAGE.photo.file,
+                                {
+                                    caption: MESSAGE.caption,
+                                    parse_mode: 'Markdown',
+                                    ...messageOptions
+                                },
+                                { filename: MESSAGE.photo.filename, contentType: MESSAGE.photo.contentType }
+                            );
+                            if (!MESSAGE.photo.fileId && res.photo) {
+                                const uploadedFileId = res.photo?.[res.photo.length - 1]?.file_id;
+                                MESSAGE.photo.fileId = uploadedFileId;
+                            }
+                        } else {
+                            throw new Error('No valid media provided in MESSAGE');
                         }
 
                         return res;
