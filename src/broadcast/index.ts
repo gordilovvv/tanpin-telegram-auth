@@ -113,7 +113,7 @@ async function main() {
             const result = await client.query<{ telegram_id: string }>(
                 format(
                     `
-                    SELECT id
+                    SELECT id as telegram_id
                     FROM users
                     ORDER BY id ASC
                     LIMIT %L OFFSET %L
