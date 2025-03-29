@@ -11,8 +11,8 @@ import path from 'path';
 
 config({ path: path.resolve(__dirname, '../../.env.scripts') });
 
-type Bot = 'nft' | 'play' | 'auth';
-const BOTS: Bot[] = ['nft', 'play', 'auth'];
+type Bot = 'nft' | 'play' | 'auth' | 'seabattle';
+const BOTS: Bot[] = ['nft', 'play', 'auth', 'seabattle'];
 
 function help() {
     console.log('pnpm run process-broadcast {bot} {offset?}');
@@ -99,13 +99,45 @@ async function main() {
         }
     };
 
+    const getSeabattleUsers = async (limit: number, offset: number) => {
+        const client = new Client({
+            user: process.env.SEABATTLE_PGUSER,
+            host: process.env.SEABATTLE_PGHOST,
+            database: process.env.SEABATTLE_PGDATABASE,
+            password: process.env.SEABATTLE_PGPASSWORD,
+            port: Number(process.env.SEABATTLE_PGPORT)
+        });
+
+        try {
+            await client.connect();
+            const result = await client.query<{ telegram_id: string }>(
+                format(
+                    `
+                    SELECT tg_user_id as telegram_id
+                    FROM users
+                    ORDER BY tg_user_id ASC
+                    LIMIT %L OFFSET %L
+                    `,
+                    limit,
+                    offset
+                )
+            );
+            return result.rows;
+        } catch (error: any) {
+            console.error(`[seabattle-db] error ${error.message}`);
+            throw error;
+        } finally {
+            await client.end();
+        }
+    };
+
     let offset = safeParseInt(process.argv[3]) || 0;
     const limit = 100;
     const queue = new PQueue({ interval: 1_100, intervalCap: 20 });
 
-    const token = bot === 'nft' ? process.env.NFT_BOT_TOKEN : bot === 'auth' ? process.env.AUTH_BOT_TOKEN : process.env.PLAY_BOT_TOKEN;
+    const token = bot === 'nft' ? process.env.NFT_BOT_TOKEN : bot === 'auth' ? process.env.AUTH_BOT_TOKEN : bot === 'play' ? process.env.PLAY_BOT_TOKEN : process.env.SEABATTLE_BOT_TOKEN;
     const botApi = new TelegramBot(token!, { webHook: false, polling: false });
-    const messageOptions = bot === 'nft' ? MESSAGE.options : MESSAGE.optionsFallback;
+    const messageOptions = bot === 'nft' || bot === 'seabattle' ? MESSAGE.options : MESSAGE.optionsFallback;
 
     console.log('[bot] sleep for 1 minute');
     console.log(`[bot] will send message in ${bot}`, 'message', {
@@ -128,7 +160,9 @@ async function main() {
         if (PROD_BROADCAST) {
             users = bot === 'auth'
                 ? await getTelegramAuthUsers(limit, offset)
-                : await getTelegramBotUsers(limit, offset);
+                : bot === 'seabattle'
+                    ? await getSeabattleUsers(limit, offset)
+                    : await getTelegramBotUsers(limit, offset);
         } else {
             users = offset === 0 ? [{ telegram_id: '434418227' }, { telegram_id: '1192553788' }] : [];
         }
