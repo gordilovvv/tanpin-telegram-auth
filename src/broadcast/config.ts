@@ -11,22 +11,22 @@ export const MESSAGE: {
     optionsFallback: TelegramBot.SendPhotoOptions
 } = {
     // video: { url: 'https://tmacdn.tanpin.io/output.mp4' },
-    photo: { file: fs.readFileSync('assets/leaderboard.png'), filename: 'leaderboard.png', contentType: 'image/png' },
-    caption: '*Сезон лидербордов в Морском Бою открыт*🎉\n\nСражайся в двух категориях:\n🏆 По количеству побед.\n🎯 По количеству сыгранных игр.\n\nГотов забрать Tanpin coins и билеты? Тогда нажимай «Играть».',
+    photo: { file: fs.readFileSync('assets/cup_post.png'), filename: 'cup_post.png', contentType: 'image/png' },
+    caption: '*Новая неделя уже началась🏆*\n\nА это значит, что ты можешь побороться за ценные призы. Разгроми флот соперника и стань лидером этой недели.\n\nЛидеры прошлой недели получили свои награды.\n\n[Список победителей](https://docs.google.com/spreadsheets/d/1JqYWSiU8Coj5Cvl7DMKUKgT-0UYx8jv5-Nng9De1Qpc/edit?usp=sharing)',
     options: {
         reply_markup: {
             inline_keyboard: [
                 [
                     {
-                        text: 'Играть 🕹️',
+                        text: 'Играть 💥',
                         // url: 'https://t.me/sea_battle_tanpin_bot?start='
                         web_app: {
                             url: 'https://seabattle.tanpin.io'
                         }
                     },
                     {
-                        text: 'Канал ❤️‍🔥',
-                        url: 'https://t.me/tanpin_ru'
+                        text: 'Канал 🗺️',
+                        url: 'https://t.me/sea_battle_tanpin'
                     }
                 ]
             ]
